@@ -1,4 +1,4 @@
-# Coding Agent
+# Repo-Coding Agent
 
 > [!WARNING]
 > This repo is still in construction process
@@ -13,21 +13,23 @@ We need to implement:
 
 - Add history management for multi LLM response.
 
+- Finish the basic running pipeline for **Repo-Coding-Agent**.
+
+Maybe in the next stage:
+
+-  Add LLM tool use & MCP & functional call integration
+-  Optimize history management and code block splitting (for optimizing long-context management)
+
 ## Todo List
 
-- [ ] Add basic component: show full context for large language models
-
-- [ ] Add Basic LLM-response pipeline
-
-- [ ] Add LLM tool use (Optional)
-
-- [ ] Add diff for modification (Optional)
-
-## What I have finished 😊
-
-- ✅: Finish basic file matching, filtering and walking class and util functions
-
-- ✅: refactor file structure for making it can be installed via `pip install .`
+- [x] Complete the most basic functional design. ✅
+- [x] Complete basic file matching, filtering and walking class and util functions. ✅
+- [x] Complete the refactoring for the repo code structure for making it available as a python package. ✅
+- [x] Complete the basic context management for stage one. ✅
+- [ ] Complete the model response.
+- [ ] Complete basic model history management
+- [ ] Figure out how mainstream LLMs manage history records
+- [ ] Couple the two modules and build the final pipeline
 
 ## Structure
 
@@ -60,6 +62,4 @@ We need to implement:
     ├── __init__.py
     ├── test_inspector.py       # unit test for inspector 
     └── test_walk_file.py       # test for matching file types and walking
-
-10 directories, 30 files
 ```
