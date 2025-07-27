@@ -33,25 +33,33 @@ We need to implement:
 
 ```bash
 .
+├── CodingAgent
+│   ├── __init__.py
+│   ├── agent.py                # basic agent class for managing LLM Response
+│   ├── config.py               # loading basic config for LLM, including API key
+│   ├── config.yaml             # config file, (gitignored)
+│   ├── inspector
+│   │   ├── __init__.py
+│   │   ├── code_loader.py      # several functions for file typing matching and filtering
+│   │   └── context_manager.py  # classes for managing what inspector will pass the code content to LLM
+│   ├── llm
+│   │   ├── __init__.py         
+│   │   ├── history_manager.py  # managing history
+│   │   ├── llm_client.py       # basic components for LLM client
+│   │   └── prompt.py           # store basic prompt
+│   ├── main.py                 # project entry point
+│   └── utils
+│       ├── __init__.py
+│       └── logging_info.py     # modules for loggings
+├── LICENSE
 ├── README.md
-├── agent.py                # basic agent class for managing LLM Response
-├── config.py               # loading basic config for LLM, including API key
-├── inspector               # package1: the inspector for inspecting codes
-│   ├── __init__.py 
-│   ├── code_loader.py      # loading codes for different file types and ignoring some certain files 
-│   └── context_manager.py  # managing what inspector will be passed to the LLM
-├── llm
-│   ├── __init__.py
-│   ├── history_manager.py  # managing history
-│   ├── llm_client.py       # basic components for LLM client
-│   └── prompt.py           # store basic prompt
-├── main.py
-├── test
-│   ├── __init__.py
-│   └── test_inspector.py   # some initial unit test
-└── utils
+├── log
+├── pyproject.toml
+├── run.sh
+└── test
     ├── __init__.py
-    ├── file_utils.py       # utils for loading files
-    └── logging_info.py     # recording loggings
-```
+    ├── test_inspector.py       # unit test for inspector 
+    └── test_walk_file.py       # test for matching file types and walking
 
+10 directories, 30 files
+```
