@@ -5,7 +5,7 @@ sys.path.append(os.getcwd())
 
 from abc import ABC, abstractmethod
 from typing import Optional, List, Tuple
-from inspector.code_loader import filter_files, read_single_file
+from CodingAgent.inspector.code_loader import filter_files, read_single_file
 
 
 class AbstractContentProvider(ABC):

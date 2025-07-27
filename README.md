@@ -23,6 +23,11 @@ We need to implement:
 
 - [ ] Add diff for modification (Optional)
 
+## What I have finished 😊
+
+- ✅: Finish basic file matching, filtering and walking class and util functions
+
+- ✅: refactor file structure for making it can be installed via `pip install .`
 
 ## Structure
 
