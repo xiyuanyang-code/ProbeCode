@@ -30,8 +30,8 @@ class CodingAgent(ChatAgent):
         scheduling_strategy="round_robin",
         single_iteration=False,
         # all the parameters are for the father class: ChatAgent
-        model_platform: ModelPlatformType = ModelPlatformType.OPENAI,
-        model_type: ModelType = ModelType.GPT_4O_MINI,
+        model_platform: ModelPlatformType = ModelPlatformType.ZHIPU,
+        model_type: ModelType = ModelType.GLM_4,
     ):
         """Initialize the CodingAgent.
         

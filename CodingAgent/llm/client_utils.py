@@ -20,8 +20,8 @@ def load_apikey_config():
     Logs:
         Logs the loading process and warns if any variable is missing.
     """
-    api_key = os.getenv("OPENAI_API_KEY")
-    base_url = os.getenv("BASE_URL")
+    api_key = os.getenv("ZHIPU_API_KEY")
+    base_url = os.getenv("ZHIPU_API_BASE_URL")
     if api_key:
         logger.info("OPENAI_API_KEY loaded successfully.")
     else:
