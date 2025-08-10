@@ -1,6 +1,6 @@
-import sys
+"""LLM agent for coding tasks."""
 import os
-
+import sys
 sys.path.append(os.getcwd())
 
 from camel.agents import ChatAgent
@@ -10,11 +10,12 @@ from CodingAgent.utils.logging_info import setup_logging_config
 from CodingAgent.llm.client_utils import load_apikey_config
 
 
-# ----basic global loading----- #
 logger = setup_logging_config()
 
 
 class CodingAgent(ChatAgent):
+    """Coding agent that extends the base ChatAgent with specific configurations for coding tasks."""
+    
     def __init__(
         self,
         system_message=None,
@@ -32,10 +33,27 @@ class CodingAgent(ChatAgent):
         model_platform: ModelPlatformType = ModelPlatformType.OPENAI,
         model_type: ModelType = ModelType.GPT_4O_MINI,
     ):
-        # for basic config
+        """Initialize the CodingAgent.
+        
+        Args:
+            system_message: System message for the agent.
+            model: Model to use for the agent.
+            memory: Memory module for the agent.
+            message_window_size: Size of the message window.
+            token_limit: Token limit for the agent.
+            output_language: Language for the agent's output.
+            tools: Tools available to the agent.
+            external_tools: External tools available to the agent.
+            response_terminators: Response terminators for the agent.
+            scheduling_strategy: Strategy for scheduling messages.
+            single_iteration: Whether to run only a single iteration.
+            model_platform: Platform for the model.
+            model_type: Type of model to use.
+        """
+        # Load API configuration
         self.load_api_config()
 
-        # default settings for config of self.effective model
+        # Default settings for config of self.effective model
         self.effective_model = ModelFactory.create(
             api_key=self.api_key,
             url=self.base_url,
@@ -58,12 +76,13 @@ class CodingAgent(ChatAgent):
         )
 
     def load_api_config(self):
+        """Load API configuration from environment variables."""
         self.api_key = load_apikey_config()[0]
         self.base_url = load_apikey_config()[1]
 
 
 if __name__ == "__main__":
-    # a simple test
+    # A simple test
     test = CodingAgent()
     response = test.step("Hello")
     print(response.msgs[0].content)

@@ -1,3 +1,4 @@
+"""Logging configuration for the coding agent."""
 import logging
 import os
 import sys
@@ -11,6 +12,11 @@ SHARED_LOGGER_NAME = "CodingAgent"
 
 
 def setup_logging_config():
+    """Set up logging configuration for the application.
+    
+    Returns:
+        logging.Logger: Configured logger instance.
+    """
     logger = logging.getLogger(SHARED_LOGGER_NAME)
     if logger.handlers:
         return logger
