@@ -96,12 +96,6 @@ def chat_loop(
                 ),
                 role_at_backend=OpenAIBackendRole.ASSISTANT,
             ),
-            MemoryRecord(
-                message=BaseMessage.make_user_message(
-                    role_name="user", content="我是杨希渊"
-                ),
-                role_at_backend=OpenAIBackendRole.USER,
-            ),
         ]
     )
 
