@@ -1,4 +1,4 @@
-# Coding Agent
+# Repo-Coding Agent
 
 > [!WARNING]
 > This repo is still in construction process
@@ -13,40 +13,53 @@ We need to implement:
 
 - Add history management for multi LLM response.
 
+- Finish the basic running pipeline for **Repo-Coding-Agent**.
+
+Maybe in the next stage:
+
+-  Add LLM tool use & MCP & functional call integration
+-  Optimize history management and code block splitting (for optimizing long-context management)
+
 ## Todo List
 
-- [ ] Add basic component: show full context for large language models
-
-- [ ] Add Basic LLM-response pipeline
-
-- [ ] Add LLM tool use (Optional)
-
-- [ ] Add diff for modification (Optional)
-
+- [x] Complete the most basic functional design. ✅
+- [x] Complete basic file matching, filtering and walking class and util functions. ✅
+- [x] Complete the refactoring for the repo code structure for making it available as a python package. ✅
+- [x] Complete the basic context management for stage one. ✅
+- [ ] Complete the model response.
+- [ ] Complete basic model history management
+- [ ] Figure out how mainstream LLMs manage history records
+- [ ] Couple the two modules and build the final pipeline
 
 ## Structure
 
 ```bash
 .
+├── CodingAgent
+│   ├── __init__.py
+│   ├── agent.py                # basic agent class for managing LLM Response
+│   ├── config.py               # loading basic config for LLM, including API key
+│   ├── config.yaml             # config file, (gitignored)
+│   ├── inspector
+│   │   ├── __init__.py
+│   │   ├── code_loader.py      # several functions for file typing matching and filtering
+│   │   └── context_manager.py  # classes for managing what inspector will pass the code content to LLM
+│   ├── llm
+│   │   ├── __init__.py         
+│   │   ├── history_manager.py  # managing history
+│   │   ├── llm_client.py       # basic components for LLM client
+│   │   └── prompt.py           # store basic prompt
+│   ├── main.py                 # project entry point
+│   └── utils
+│       ├── __init__.py
+│       └── logging_info.py     # modules for loggings
+├── LICENSE
 ├── README.md
-├── agent.py                # basic agent class for managing LLM Response
-├── config.py               # loading basic config for LLM, including API key
-├── inspector               # package1: the inspector for inspecting codes
-│   ├── __init__.py 
-│   ├── code_loader.py      # loading codes for different file types and ignoring some certain files 
-│   └── context_manager.py  # managing what inspector will be passed to the LLM
-├── llm
-│   ├── __init__.py
-│   ├── history_manager.py  # managing history
-│   ├── llm_client.py       # basic components for LLM client
-│   └── prompt.py           # store basic prompt
-├── main.py
-├── test
-│   ├── __init__.py
-│   └── test_inspector.py   # some initial unit test
-└── utils
+├── log
+├── pyproject.toml
+├── run.sh
+└── test
     ├── __init__.py
-    ├── file_utils.py       # utils for loading files
-    └── logging_info.py     # recording loggings
+    ├── test_inspector.py       # unit test for inspector 
+    └── test_walk_file.py       # test for matching file types and walking
 ```
-
