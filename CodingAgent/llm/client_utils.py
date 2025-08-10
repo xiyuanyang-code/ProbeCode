@@ -1,3 +1,4 @@
+"""Utility functions for LLM client configuration."""
 import os
 import sys
 
@@ -9,13 +10,12 @@ logger = setup_logging_config()
 
 
 def load_apikey_config():
-    """
-    Load the Gemini API key and base URL from environment variables.
+    """Load the API key and base URL from environment variables.
 
     Returns:
         tuple: (api_key, base_url) where
-            api_key (str or None): The Gemini API key from the environment variable 'OPENAI_API_KEY'.
-            base_url (str or None): The Gemini API base URL from the environment variable 'BASE_URL'.
+            api_key (str or None): The API key from the environment variable 'OPENAI_API_KEY'.
+            base_url (str or None): The base URL from the environment variable 'BASE_URL'.
 
     Logs:
         Logs the loading process and warns if any variable is missing.

@@ -1,14 +1,15 @@
+"""Configuration handling for the coding agent."""
 import yaml
 import os
 import importlib.resources
-import yaml
 
 
 def write_config():
+    """Write configuration to a YAML file."""
     log_dir = os.path.join(os.getcwd(), "log")
     print("log dir: ", log_dir)
 
-    # write into yaml file
+    # Write into yaml file
     config_data = {
         "log_dir_home": log_dir,
     }
@@ -21,6 +22,11 @@ def write_config():
 
 
 def load_config():
+    """Load configuration from the YAML file.
+    
+    Returns:
+        dict: Configuration data.
+    """
     with importlib.resources.files("CodingAgent").joinpath("config.yaml").open("r") as f:
         config = yaml.safe_load(f)
     return config
