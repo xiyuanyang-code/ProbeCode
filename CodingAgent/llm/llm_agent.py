@@ -29,6 +29,7 @@ class CodingAgent(ChatAgent):
         response_terminators=None,
         scheduling_strategy="round_robin",
         single_iteration=False,
+
         # all the parameters are for the father class: ChatAgent
         model_platform: ModelPlatformType = ModelPlatformType.ZHIPU,
         model_type: ModelType = ModelType.GLM_4,
@@ -51,10 +52,11 @@ class CodingAgent(ChatAgent):
             model_type: Type of model to use.
         """
         # Load API configuration
+        # todo switch to the OpenAI url (for more choice)
         self.load_api_config()
 
         # Default settings for config of self.effective model
-        self.effective_model = ModelFactory.create(
+        self._model = ModelFactory.create(
             api_key=self.api_key,
             url=self.base_url,
             model_platform=model_platform,
@@ -63,7 +65,7 @@ class CodingAgent(ChatAgent):
 
         super().__init__(
             system_message,
-            self.effective_model,
+            self._model,
             memory,
             message_window_size,
             token_limit,
