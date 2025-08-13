@@ -179,3 +179,4 @@ pyrightconfig.json
 # custom settings
 log/**
 config.yaml
+CodingAgent/pyparser/result/
