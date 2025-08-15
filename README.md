@@ -10,6 +10,9 @@ We aim to create a **Repo Coding Agent** specializing in understanding extremely
 
 > It is just a toy implementation...
 
+>[!TIP]
+>Update: This project uses `uv` to manage environments.
+
 ## Current Constructing
 
 Stage I: We want to let LLM accept the full content for all lines of code of the repository, which can better improve the comprehension of overall code for LLM. ✅
@@ -46,15 +49,21 @@ Maybe in the next stage:
 - [x] Complete the refactoring for the repo code structure for making it available as a python package. ✅
 - [x] Complete the basic context management for stage one. ✅
 - [x] Complete the model response. ✅
-- [x] Couple the two modules and build the final pipeline
-- [ ] !REFACTOR: Remove camel
-- [ ] !REBUILD: Developing a simple and lightweight LLM multi-turn conversation mini-app with history management.
+- [x] Couple the two modules and build the final pipeline. ✅
+- [x] !REFACTOR: Remove camel. ✅
+- [x] !REBUILD: Developing a simple and lightweight LLM multi-turn conversation mini-app with history management. ✅
     - [ ] Complete basic model history management
-    - [ ] Figure out how mainstream LLMs manage history records
+    - [x] Figure out how mainstream LLMs manage history records
 - [x] Add basic python parser using `ast`. ✅
     - [ ] Debug and add more functions for analyzing the tools
     - [ ] Integrate this independent modules into pipeline
     - [ ] View this as a MCP tool calling and refactor the code again
+- [ ] MCP configuration
+    - [x] Finish MCP tools settings
+    - [ ] Finish MCP prompts settings
+    - [ ] Finish MCP resources settings
+    - [ ] Finish MCP Sampling
+    - Relevant Web: [MCP Components](https://huggingface.co/learn/mcp-course/en/unit1/key-concepts)
 
 ## Structure
 
@@ -62,29 +71,46 @@ Maybe in the next stage:
 .
 ├── CodingAgent
 │   ├── __init__.py
-│   ├── agent.py                # basic agent class for managing LLM Response
-│   ├── config.py               # loading basic config for LLM, including API key
-│   ├── config.yaml             # config file, (gitignored)
+│   ├── config.py
+│   ├── config.yaml
 │   ├── inspector
 │   │   ├── __init__.py
-│   │   ├── code_loader.py      # several functions for file typing matching and filtering
-│   │   └── context_manager.py  # classes for managing what inspector will pass the code content to LLM
+│   │   └── context_manager.py
 │   ├── llm
-│   │   ├── __init__.py         
-│   │   ├── history_manager.py  # managing history
-│   │   ├── llm_client.py       # basic components for LLM client
-│   │   └── prompt.py           # store basic prompt
-│   ├── main.py                 # project entry point
+│   │   ├── __init__.py
+│   │   ├── agent.py
+│   │   ├── client_utils.py
+│   │   ├── config.json
+│   │   ├── mcp_tool_integrate.py
+│   │   ├── prompt.py
+│   │   └── tools
+│   │       ├── file_ops.py
+│   │       └── web_search.py
+│   ├── main.py
+│   ├── pyparser
+│   │   ├── README.md
+│   │   ├── example
+│   │   │   └── example.py
+│   │   ├── parser.py
+│   │   ├── result
+│   │   │   └── test.json
+│   │   └── test
+│   │       ├── test_backward_compatibility.py
+│   │       └── test_programmatic.py
 │   └── utils
 │       ├── __init__.py
-│       └── logging_info.py     # modules for loggings
+│       └── logging_info.py
+├── CodingAgent.egg-info
+│   ├── PKG-INFO
+│   ├── SOURCES.txt
+│   ├── dependency_links.txt
+│   ├── entry_points.txt
+│   ├── requires.txt
+│   └── top_level.txt
 ├── LICENSE
 ├── README.md
-├── log
 ├── pyproject.toml
+├── requirements.txt
 ├── run.sh
-└── test
-    ├── __init__.py
-    ├── test_inspector.py       # unit test for inspector 
-    └── test_walk_file.py       # test for matching file types and walking
+└── uv.lock
 ```
