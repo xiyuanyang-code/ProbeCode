@@ -59,7 +59,7 @@ Maybe in the next stage:
     - [ ] Integrate this independent modules into pipeline
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
-    - [ ] Finish MCP tools settings
+    - [x] Finish MCP tools settings
     - [ ] Finish MCP prompts settings
     - [ ] Finish MCP resources settings
     - [ ] Finish MCP Sampling
