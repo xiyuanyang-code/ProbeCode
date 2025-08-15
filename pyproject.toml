@@ -8,8 +8,16 @@ version = "0.1.0"
 description = "Simple Coding Agent"
 authors = [{ name = "Xiyuan Yang", email = "yangxiyan@sjtu.edu.cn" }]
 readme = "README.md"
-requires-python = ">=3.8"
-dependencies = []
+requires-python = ">=3.10"
+dependencies = [
+    "anthropic>=0.64.0",
+    "httpx>=0.28.1",
+    "mcp>=1.13.0",
+    "nest-asyncio>=1.6.0",
+    "pyyaml>=6.0.2",
+    "rich>=14.1.0",
+    "zhipuai>=2.1.5.20250801",
+]
 
 [project.scripts]
 coding_agent="CodingAgent.main:main"
@@ -29,3 +37,7 @@ exclude = [
 
 [tool.setuptools.package-data]
 "CodingAgent" = ["config.yaml"]
+
+[[tool.uv.index]]
+url = "https://mirrors.aliyun.com/pypi/simple"
+default = true
