@@ -1,0 +1,11 @@
+{
+    "servers": {
+        "tools": {
+            "command": "uv",
+            "args": [
+                "run",
+                "CodingAgent/llm/mcp_tool_integrate.py"
+            ]
+        }
+    }
+}
