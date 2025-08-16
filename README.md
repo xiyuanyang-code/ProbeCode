@@ -36,6 +36,16 @@ Maybe in the next stage:
 
 Stage II: Refactor the code & add basic code splitting tools
 
+- History Management
+
+    - Implement an advanced feature to compress historical records.
+
+- Basic Chat Loop Enhancements
+
+    - Improve the console's appearance.
+    - Integrate the logger module.
+    - Add more colors and information.
+
 Maybe in the next stage:
 
 - Add MCP tools for refactoring again
@@ -54,7 +64,8 @@ Maybe in the next stage:
 - [x] !REBUILD: Developing a simple and lightweight LLM multi-turn conversation mini-app with history management. ✅
     - [ ] Complete basic model history management
     - [x] Figure out how mainstream LLMs manage history records
-- [x] Add basic python parser using `ast`. ✅
+- [ ] Module: basic code splitting part constructing
+    - [x] Add basic python parser using `ast`. ✅
     - [ ] Debug and add more functions for analyzing the tools
     - [ ] Integrate this independent modules into pipeline
     - [ ] View this as a MCP tool calling and refactor the code again
