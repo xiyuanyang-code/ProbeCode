@@ -4,7 +4,7 @@
 > This repo is still in construction process
 
 > [!TIP]
-> Congratulations! The initial dev release are available! See [Usage](#release) for more detail.
+> Congratulations! The initial dev release `0.1.0` are available! See [Usage](#release) for more detail.
 
 ## Introduction
 
@@ -117,7 +117,7 @@ Maybe in the next stage:
 
 ## RELEASE
 
-We are happy to announce that the initial light version of the CodingAgent is available!
+We are happy to announce that the initial light version of the CodingAgent `0.1.0` is available!
 The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. For now, it can only be invoked using a Python script from the project repository's root directory with the command below.
 
 ### Settings
@@ -200,7 +200,7 @@ python CodingAgent/main.py
 
 Now the UI shows like that:
 
-![A simple Demo](../../assets/imgs/ui_initial.png)
+![A simple Demo](https://github.com/xiyuanyang-code/Repo-Coding-Agent/blob/master/assets/imgs/ui_initial.png)
 
 
 ## Contributions
