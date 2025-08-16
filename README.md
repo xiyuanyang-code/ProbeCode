@@ -1,7 +1,7 @@
 # Repo-Coding Agent
 
 > [!IMPORTANT]
-> Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#release) for more detail.
+> Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
 
 ## Introduction
 
