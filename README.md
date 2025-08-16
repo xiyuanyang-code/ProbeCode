@@ -1,11 +1,18 @@
 # Repo-Coding Agent
 
-> [!SUCCESS]
+> [!IMPORTANT]
 > Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#release) for more detail.
 
 ## Introduction
 
-We aim to create a **Repo Coding Agent** specializing in understanding extremely long and complex code blocks (even those exceeding the context length of an LLM). This agent will effectively read the relevant specialized code sections, thereby enhancing the LLM's code comprehension and generation capabilities for the given problem.
+We're developing a **Repo Coding Agent** designed to operate at the **project level**. This agent addresses the core challenge of managing extremely long and complex codebases that exceed a typical LLM's context window. It does this by intelligently identifying and reading only the relevant, specialized code sections, which in turn significantly boosts the LLM's comprehension and code generation capabilities for any given problem.
+
+Here are the key features and benefits of our agent:
+
+* **Lightweight CLI:** We support a streamlined command-line interface for conversation, allowing for custom settings and the integration of your own **100% Python-based MCPs (Modularized Code Processors)**.
+* **Integrated Tooling and History:** The agent supports powerful tool calls and maintains a history of the conversation, ensuring a coherent and efficient workflow.
+* **Unique Long-Context Advantage:** It has a distinct edge in understanding long-form text and code, making it an ideal solution for complex, sprawling projects.
+* **More Than a Coding Agent:** By optimizing prompts and providing additional custom MCP resources, our agent can be easily transformed into a powerful AI assistant for various other specialized domains, extending its utility far beyond coding.
 
 <details>
 
@@ -33,6 +40,10 @@ See [Todo List](#todo-list) for more information.
 
 
 ## Structure
+
+<details>
+
+<summary>File Structure</summary>
 
 ```bash
 .
@@ -79,6 +90,8 @@ See [Todo List](#todo-list) for more information.
 └── uv.lock
 ```
 
+</details>
+
 ## Installation
 
 ### Requirements
@@ -115,8 +128,9 @@ Several Recommendation:
 
 - How to get `ZHIPU_API_KEY` for web search?
     - Go to https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys to generating your own api-key.
-    - > [!WARNING]
-      > ZHIPU_API_KEY only support Chinese search for current version, it will be optimized in future versions.
+
+> [!Note]
+> ZHIPU_API_KEY only support Chinese search for current version, it will be optimized in future versions.
 
 ```bash
 # write it into ~/.bashrc or ~/.zshrc
@@ -129,8 +143,14 @@ export ZHIPU_API_KEY="switch to yours"
 
 Model Name and custom MCP config can be manually defined in [`config.json`](../llm/config.json)
 
-> [!TIP]
+> [!Note]
 > Skip this part for default settings.
+
+<details>
+
+<summary> Custom MCP settings
+
+</summary>
 
 ```json
 {
@@ -158,6 +178,7 @@ Model Name and custom MCP config can be manually defined in [`config.json`](../l
 
 - For Current supported tools, see [this docs](./CodingAgent/llm/tools/README.md).
 
+</details>
 
 ## Usage
 
