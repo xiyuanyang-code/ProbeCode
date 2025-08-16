@@ -1,9 +1,14 @@
 import os
+import sys
 import json
 from typing import List, Dict, Union
 import datetime
 from anthropic import Anthropic, APIStatusError
 from anthropic.types import ToolUseBlock, Message
+
+sys.path.append(os.getcwd())
+
+from CodingAgent.config import load_config
 
 
 class MemoryManager:
@@ -33,6 +38,7 @@ class MemoryManager:
         """
         self.short_term_memory: List[Dict] = []
         self.long_term_memory: List[Dict] = []
+        self.config = load_config()
 
         self.short_term_memory_threshold = config.get("memory", {}).get(
             "short_term_threshold", 50
@@ -41,7 +47,7 @@ class MemoryManager:
         self.llm_client = llm_client
 
         # New feature: persistent history file management
-        self.history_dir = "./history"
+        self.history_dir = os.path.join(self.config.get("default_dir"), "./history")
         os.makedirs(self.history_dir, exist_ok=True)
         timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         self.history_file_path = os.path.join(
@@ -84,7 +90,7 @@ class MemoryManager:
             return response.content[0].text
         except APIStatusError as e:
             print(f"Failed to summarize memory: {e.response.text}")
-            return "（摘要失败）"
+            return "Fail to summarize"
 
     def _format_messages(self, messages: List[Dict]) -> str:
         """

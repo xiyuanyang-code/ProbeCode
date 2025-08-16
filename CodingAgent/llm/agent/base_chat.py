@@ -38,7 +38,6 @@ class UserChat:
             }
         )
 
-        # 使用 PromptSession 来创建异步应用
         self.session = PromptSession(
             history=FileHistory(".history.txt"), style=self.style
         )
@@ -168,7 +167,7 @@ class BaseChat:
             try:
                 query = self.user_chat.get_input()
 
-                if query == "/exit" or query.lower() == "quit":
+                if query == "/exit" or query == "/quit":
                     self.user_chat.display_system_message("Exiting chat loop.")
                     break
 

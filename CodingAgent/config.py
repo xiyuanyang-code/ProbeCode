@@ -1,17 +1,50 @@
 """Configuration handling for the coding agent."""
+
 import yaml
 import os
+import json
 import importlib.resources
 
 
 def write_config():
     """Write configuration to a YAML file."""
-    log_dir = os.path.join(os.getcwd(), "log")
+    # write current working directory
+    default_dir = os.getcwd()
+    print("Default dir: ", default_dir)
+    # write log dir
+    log_dir = os.path.join(default_dir, "log")
     print("log dir: ", log_dir)
+
+    # rewrite MCP config
+    MCP_config_dir = os.path.join(default_dir, "CodingAgent/llm/config.json")
+    try:
+        with open(MCP_config_dir, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        print(f"Error: The file {MCP_config_dir} was not found.")
+        exit()
+    except json.JSONDecodeError:
+        print(f"Error: Could not decode JSON from {MCP_config_dir}.")
+        exit()
+
+    data["servers"]["tools"]["args"][1] = os.path.join(
+        default_dir, "CodingAgent/llm/mcp_tool_integrate.py"
+    )
+
+    print("Modified MCP config:", data)
+    print(f"This file is located in {MCP_config_dir}")
+
+    try:
+        with open(MCP_config_dir, "w") as file:
+            json.dump(data, file, indent=4, ensure_ascii=False)
+    except IOError as e:
+        print(f"Error writing to file {MCP_config_dir}: {e}")
 
     # Write into yaml file
     config_data = {
-        "log_dir_home": log_dir,
+        "default_dir": default_dir,
+        "log_dir": log_dir,
+        "mcp_log_dir": MCP_config_dir,
     }
 
     # Write to YAML file
@@ -23,11 +56,13 @@ def write_config():
 
 def load_config():
     """Load configuration from the YAML file.
-    
+
     Returns:
         dict: Configuration data.
     """
-    with importlib.resources.files("CodingAgent").joinpath("config.yaml").open("r") as f:
+    with (
+        importlib.resources.files("CodingAgent").joinpath("config.yaml").open("r") as f
+    ):
         config = yaml.safe_load(f)
     return config
 

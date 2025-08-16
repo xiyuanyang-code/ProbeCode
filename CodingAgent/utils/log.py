@@ -32,15 +32,15 @@ def _create_file_handler(logger: logging.Logger, formatter: logging.Formatter):
     Attempts to create and configure a file handler for the logger.
     If it fails (e.g., due to permission errors), it logs the error and returns None.
     """
-    log_dir_home = config.get("log_dir_home")
-    if not log_dir_home:
-        logger.error("Configuration key 'log_dir_home' is missing.")
+    log_dir = config.get("log_dir")
+    if not log_dir:
+        logger.error("Configuration key 'log_dir' is missing.")
         return None
 
-    log_file_path = os.path.join(log_dir_home, "Agent.log")
+    log_file_path = os.path.join(log_dir, "Agent.log")
 
     try:
-        os.makedirs(log_dir_home, exist_ok=True)
+        os.makedirs(log_dir, exist_ok=True)
         file_handler = logging.FileHandler(log_file_path, encoding="utf-8")
         file_handler.setLevel(logging.INFO)
         file_handler.setFormatter(formatter)
@@ -48,7 +48,7 @@ def _create_file_handler(logger: logging.Logger, formatter: logging.Formatter):
         return file_handler
     except OSError as e:
         logger.error(
-            f"Failed to create or write to log file at '{log_dir_home}'. File logging will be disabled. Error: {e}"
+            f"Failed to create or write to log file at '{log_dir}'. File logging will be disabled. Error: {e}"
         )
         return None
 
@@ -93,7 +93,7 @@ def setup_logging_config():
             "CRITICAL": "red,bg_white",
         },
         secondary_log_colors={},
-        style='%'
+        style="%",
     )
 
     _create_file_handler(logger, formatter)

@@ -4,7 +4,7 @@
 > This repo is still in construction process
 
 > [!TIP]
-> Congratulations! The initial dev release `0.1.0` are available! See [Usage](#release) for more detail.
+> Congratulations! The initial dev release `0.1.1` are available! See [Usage](#release) for more detail.
 
 ## Introduction
 
@@ -52,15 +52,19 @@ Maybe in the next stage:
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
     - [x] Finish MCP tools settings
+    - [ ] Restrict when LLM are enabled to call tools (optimize docstring)
     - [ ] Finish MCP prompts settings
     - [ ] Finish MCP resources settings
     - [ ] Finish MCP Sampling
     - Relevant Web: [MCP Components](https://huggingface.co/learn/mcp-course/en/unit1/key-concepts)
 
-- [ ] Fix: relative file path and using pip to install
-    - [ ] Make the package can be run in any folder
-    - [ ] Make the package can be installed with `pip install -e .`
-    - [ ] Fix the problem for relative file path
+- [x] Fix: relative file path and using pip to install ✅
+    - [x] Make the package can be run in any folder ✅
+    - [x] Make the package can be installed with `pip install -e .` ✅
+    - [x] Fix the problem for relative file path ✅
+
+
+
 
 ## Structure
 
@@ -117,10 +121,29 @@ Maybe in the next stage:
 
 ## RELEASE
 
-We are happy to announce that the initial light version of the CodingAgent `0.1.0` is available!
-The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. For now, it can only be invoked using a Python script from the project repository's root directory with the command below.
+We are happy to announce that the initial light version of the CodingAgent `0.1.1` is available!
+The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls.
 
-### Settings
+### Installation & Settings
+
+#### Installation
+
+Install several packages with `uv` or `pip`.
+
+```bash
+# python >= 3.10
+git clone https://github.com/xiyuanyang-code/Repo-Coding-Agent.git
+cd Repo-Coding-Agent
+
+# install packages
+# METHOD1: using uv (recommended)
+bash scripts/run_with_uv.sh
+
+# METHOD2: using pip
+bash scripts/run.sh
+```
+
+#### Model Config Settings
 
 To use the LLM module, see [Settings Tutorial](./CodingAgent/llm/README.md) for more information.
 
@@ -143,7 +166,7 @@ To use the LLM module, see [Settings Tutorial](./CodingAgent/llm/README.md) for 
                 "command": "uv",
                 "args": [
                     "run",
-                    "CodingAgent/llm/mcp_tool_integrate.py"
+                    "/home/user/CodingAgent/llm/mcp_tool_integrate.py"
                 ]
             }
         }
@@ -176,25 +199,16 @@ The chat interface supports:
     - Write history into local files.
 - A beautiful CLI UI design.
 
-The current version supports a lightweight command-line chat interface with history management and tool calls. For now, it can only be invoked using a Python script from the project repository's root directory with the command:
-
 ```bash
-git clone https://github.com/xiyuanyang-code/Repo-Coding-Agent.git
-cd Repo-Coding-Agent
+# change to your current working directory
+coding_agent
 
-# get some preliminaries
-python -m CodingAgent.config
-
-# now doesn't support pip install -e . yet, to be finished in the future.
-# python>=3.10 is recommended
-pip install -r requirements.txt
+# then it will create a file named .history.txt which stores all the historical command you have typed in
+# it will record the dialogue history in 'history' in the original folder (where you clone this project)
+# logs will be saved here as well (in log in the original folder)
 ```
 
-Run the scripts via:
-
-```bash
-python CodingAgent/main.py
-```
+After typing the commands above, you can chat with the chatbox! Then it will create a file named `.history.txt` which stores all the historical command you have typed in. It will record the dialogue history in 'history' in the original folder (where you clone this project). Logs will be saved here as well (in log in the original folder)
 
 ### DEMO
 
