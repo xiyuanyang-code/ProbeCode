@@ -90,7 +90,7 @@ class MCPChat(BaseChat):
                     self.logger.notice(
                         f"Connected to server with tools: {[tool.name for tool in response.tools]}"
                     )
-                    await self.chat_loop()
+                    self.chat_loop()
         except Exception as e:
             self.logger.error(f"Failed to connect to the server: {e}")
             raise

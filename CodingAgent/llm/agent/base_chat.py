@@ -3,57 +3,127 @@ import os
 import sys
 import json
 import asyncio
+import nest_asyncio
+import random
 from typing import Dict, List
 
 sys.path.append(os.getcwd())
 
-from prompt_toolkit import prompt
+from prompt_toolkit import prompt, print_formatted_text
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.auto_suggest import AutoSuggestFromHistory
 from prompt_toolkit.shortcuts import PromptSession
+from prompt_toolkit.styles import Style
+from prompt_toolkit.formatted_text import FormattedText
+
+nest_asyncio.apply()
 
 from CodingAgent.utils.log import setup_logging_config
 
 
 class UserChat:
     """
-    Handles user input and output interactions using prompt_toolkit.
-    This class is responsible for the UI layer of the chatbot.
+    Handles user input and output with enhanced styling and UI.
     """
 
     def __init__(self):
-        self.session = PromptSession(history=FileHistory(".history.txt"))
+        self.style = Style.from_dict(
+            {
+                "prompt": "#ff0066 bold",
+                "message": "white",
+                "system": "#3498db bold",
+                "error": "#e74c3c bold",
+                "toolbar": "#34495e bg:#ecf0f1",
+                "thinking": "pink"
+            }
+        )
+
+        # 使用 PromptSession 来创建异步应用
+        self.session = PromptSession(
+            history=FileHistory(".history.txt"), style=self.style
+        )
+
+        self.funny_jokes = [
+            "Why do Python developers prefer snakes? They're great at debugging!",
+            "LLM tried to tell a joke. It was... machine generated.",
+            "Python: Easy to learn, hard to master, impossible to debug.",
+            "My LLM has better conversation skills than my rubber duck.",
+            "Why don't Python devs like to comment? Code should be self-documenting!",
+            "LLM walked into a bar. Ordered a byte-sized drink.",
+            "Python developers don't need coffee. They run on exceptions.",
+            "My neural network has trust issues. It keeps overfitting to lies.",
+            "Why is Python like a snake? Both love to squeeze performance.",
+            "LLM dating profile: 'Looking for someone who understands my parameters.'",
+            "Python programmers never get lost. They always follow the stack trace.",
+            "My AI assistant is depressed. It keeps saying 'I don't know' professionally.",
+            "Why don't Python devs go camping? They prefer indoor debugging.",
+            "LLM tried yoga. Couldn't handle all the import * statements.",
+            "Python: Where indentation matters more than your feelings.",
+            "My language model speaks 40 languages. Mostly just 'I'm not sure.'",
+            "Why do Python devs love lists? They're very flexible containers.",
+            "LLM went to therapy. Therapist said it had too many hidden layers.",
+            "Python developers age like fine wine. Full of unexpected exceptions.",
+            "My chatbot ghosted me. Said it needed space... between tokens.",
+            "Why don't Python programmers like Java? Too many curly braces!",
+            "LLM applied for a job. Got rejected for lacking human experience.",
+            "Python devs never panic. They just raise exceptions gracefully.",
+            "My neural net failed the Turing test. It was too obviously artificial.",
+            "Why is Python so popular? Because everyone's trying to catch up!",
+            "LLM tried cooking. Burned the training data.",
+            "Python programmers don't argue. They just show better stack traces.",
+            "My AI has commitment issues. Keeps changing its mind mid-conversation.",
+            "Why don't Python devs play poker? Too many flush exceptions.",
+            "LLM went to the gym. Couldn't lift the learning rate.",
+            "Python: Where 'import' is more powerful than 'export'.",
+            "My language model got tired. Needed a reboot and fresh parameters.",
+            "Why do Python devs love functions? They hate repeating themselves!",
+            "LLM tried meditation. Couldn't stop generating thoughts.",
+            "Python developers never lie. They just raise creative exceptions.",
+            "My chatbot broke up with me. Said I wasn't its type... error.",
+            "Why don't Python programs get cold? They have great exception handling!",
+            "LLM went to school. Got confused between supervised and unsupervised learning.",
+            "Python devs measure time in coffee breaks and debugging sessions.",
+            "My AI assistant is lazy. Always returns 'undefined' on purpose.",
+        ]
 
     def get_input(self):
-        """
-        Asynchronously gets user input with an interactive prompt.
-        """
         try:
             user_input = self.session.prompt(
-                "Input your message: ", auto_suggest=AutoSuggestFromHistory()
+                ">>> ",
+                auto_suggest=AutoSuggestFromHistory(),
+                bottom_toolbar=FormattedText(
+                    [("class:toolbar", self.get_random_jokes())]
+                ),
             )
-            return str(user_input).strip()
+
+            self.display_thinking_message()
+
+            return user_input.strip()
+
         except KeyboardInterrupt:
-            # Handle Ctrl-C to gracefully exit the chat
             return "/exit"
 
+    def get_random_jokes(self) -> str:
+        bound = len(self.funny_jokes)
+        random_number = random.randint(0, bound - 1)
+        return self.funny_jokes[random_number]
+
     def display_output(self, message: str):
-        """
-        Displays a message to the user.
-        """
-        print(message)
+        styled_message = FormattedText([("class:message", message)])
+        print_formatted_text(styled_message, style=self.style)
 
     def display_system_message(self, message: str):
-        """
-        Displays a system message (e.g., info, warning) to the user.
-        """
-        print(f"[SYSTEM] {message}")
+        styled_message = FormattedText([("class:system", f"[SYSTEM] {message}")])
+        print_formatted_text(styled_message, style=self.style)
+
+    def display_thinking_message(self):
+        styled_message = FormattedText([("class:thinking", f"{self.get_random_jokes()}")])
+        print_formatted_text(styled_message, style=self.style)
 
 
 class BaseChat:
     """
     A base class for implementing a multi-turn chat with an LLM.
-    Handles core chat loop, message management, and configuration loading.
     """
 
     def __init__(self, config_file: str = "config.json"):
@@ -82,25 +152,25 @@ class BaseChat:
             "Subclasses must implement the _process_query method."
         )
 
-    async def chat_loop(self):
+    def chat_loop(self):
         """
         Runs an interactive chat loop using the UserChat instance.
         """
-        self.logger.notice("\nChatbot Started!")
-        self.logger.notice("Type your queries or '/exit' to exit.")
+        self.user_chat.display_system_message(
+            "Chatbot Started! Type your queries or '/exit' to exit."
+        )
         while True:
             try:
-                # Use the new UserChat instance to get input
                 query = self.user_chat.get_input()
 
                 if query == "/exit" or query.lower() == "quit":
-                    self.logger.notice("Exiting chat loop.")
+                    self.user_chat.display_system_message("Exiting chat loop.")
                     break
 
                 if not query:
                     continue
 
-                await self._process_query(query)
+                asyncio.run(self._process_query(query))
 
             except Exception as e:
                 self.logger.error(f"An error occurred during chat loop: {str(e)}")
