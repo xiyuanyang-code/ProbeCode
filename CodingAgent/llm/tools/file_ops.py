@@ -2,7 +2,14 @@ import os
 import shutil
 
 def create_folder(path: str) -> str:
-    """创建新文件夹"""
+    """Create a new folder at the specified path.
+    
+    Args:
+        path (str): The path where the folder should be created.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
     try:
         os.makedirs(path, exist_ok=True)
         return f"Created folder: {path}"
@@ -10,14 +17,28 @@ def create_folder(path: str) -> str:
         return f"Error: {e}"
 
 def list_directory(path: str) -> list:
-    """列出指定目录下的所有文件和子目录"""
+    """List all files and subdirectories in the specified directory.
+    
+    Args:
+        path (str): The path of the directory to list.
+        
+    Returns:
+        list: A list of file and directory names, or an error message.
+    """
     try:
         return os.listdir(path)
     except Exception as e:
         return [f"Error: {e}"]
 
 def delete_item(path: str) -> str:
-    """删除指定的文件或文件夹"""
+    """Delete the specified file or folder.
+    
+    Args:
+        path (str): The path of the item to delete.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
     try:
         if os.path.isdir(path):
             shutil.rmtree(path)
@@ -28,7 +49,15 @@ def delete_item(path: str) -> str:
         return f"Error: {e}"
 
 def rename_item(src: str, dest: str) -> str:
-    """重命名文件或文件夹"""
+    """Rename a file or folder.
+    
+    Args:
+        src (str): The current path of the item.
+        dest (str): The new path for the item.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
     try:
         os.rename(src, dest)
         return f"Renamed {src} to {dest}"
@@ -36,9 +65,97 @@ def rename_item(src: str, dest: str) -> str:
         return f"Error: {e}"
 
 def move_file(src: str, dest: str) -> str:
-    """移动文件到新路径"""
+    """Move a file to a new location.
+    
+    Args:
+        src (str): The current path of the file.
+        dest (str): The destination path for the file.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
     try:
         shutil.move(src, dest)
         return f"Moved {src} to {dest}"
+    except Exception as e:
+        return f"Error: {e}"
+
+def read_file(path: str) -> str:
+    """Read the contents of a file.
+    
+    Args:
+        path (str): The path of the file to read.
+        
+    Returns:
+        str: The file contents or an error message.
+    """
+    try:
+        with open(path, 'r', encoding='utf-8') as file:
+            return file.read()
+    except Exception as e:
+        return f"Error: {e}"
+
+def write_file(path: str, content: str) -> str:
+    """Write content to a file.
+    
+    Args:
+        path (str): The path of the file to write to.
+        content (str): The content to write to the file.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
+    try:
+        with open(path, 'w', encoding='utf-8') as file:
+            file.write(content)
+        return f"Successfully wrote to {path}"
+    except Exception as e:
+        return f"Error: {e}"
+
+def get_file_info(path: str) -> dict:
+    """Get information about a file or directory.
+    
+    Args:
+        path (str): The path of the file or directory.
+        
+    Returns:
+        dict: A dictionary containing file information or an error message.
+    """
+    try:
+        stat = os.stat(path)
+        return {
+            "path": path,
+            "size": stat.st_size,
+            "is_directory": os.path.isdir(path),
+            "created": stat.st_ctime,
+            "modified": stat.st_mtime
+        }
+    except Exception as e:
+        return {"error": str(e)}
+
+def get_current_directory() -> str:
+    """Get the current working directory.
+    
+    Returns:
+        str: The current working directory path.
+    """
+    try:
+        return os.getcwd()
+    except Exception as e:
+        return f"Error: {e}"
+
+def create_file(path: str) -> str:
+    """Create a new empty file at the specified path.
+    
+    Args:
+        path (str): The path where the file should be created.
+        
+    Returns:
+        str: A message indicating success or failure.
+    """
+    try:
+        with open(path, 'w') as file:
+            pass  # Create an empty file
+        return f"Created file: {path}"
     except Exception as e:
         return f"Error: {e}"
