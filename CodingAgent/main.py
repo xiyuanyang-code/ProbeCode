@@ -11,7 +11,7 @@ sys.path.append(os.getcwd())
 
 from CodingAgent.inspector.context_manager import FileContentReader
 from CodingAgent.utils.log import setup_logging_config
-from CodingAgent.llm.agent import MCPChat
+from CodingAgent.llm.agent.client_chat import MCPChat
 
 
 logger = setup_logging_config()
