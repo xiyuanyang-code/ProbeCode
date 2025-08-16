@@ -52,15 +52,19 @@ Maybe in the next stage:
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
     - [x] Finish MCP tools settings
+    - [ ] Restrict when LLM are enabled to call tools (optimize docstring)
     - [ ] Finish MCP prompts settings
     - [ ] Finish MCP resources settings
     - [ ] Finish MCP Sampling
     - Relevant Web: [MCP Components](https://huggingface.co/learn/mcp-course/en/unit1/key-concepts)
 
-- [ ] Fix: relative file path and using pip to install
-    - [ ] Make the package can be run in any folder
-    - [ ] Make the package can be installed with `pip install -e .`
-    - [ ] Fix the problem for relative file path
+- [x] Fix: relative file path and using pip to install ✅
+    - [x] Make the package can be run in any folder ✅
+    - [x] Make the package can be installed with `pip install -e .` ✅
+    - [x] Fix the problem for relative file path ✅
+
+
+
 
 ## Structure
 
