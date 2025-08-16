@@ -1,4 +1,10 @@
 {
+    "model": {
+        "model_name": [
+            "claude-3-5-haiku-20241022",
+            "claude-sonnet-4-20250514"
+        ]
+    },
     "servers": {
         "tools": {
             "command": "uv",

@@ -4,7 +4,7 @@ import sys
 
 sys.path.append(os.getcwd())
 
-from CodingAgent.utils.logging_info import setup_logging_config
+from CodingAgent.utils.log import setup_logging_config
 
 logger = setup_logging_config()
 
