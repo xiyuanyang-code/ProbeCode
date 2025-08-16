@@ -1,5 +1,7 @@
 #!/bin/bash
 
+pip install pyyaml
+
 # get some preliminaries
 python -m CodingAgent.config
 
@@ -9,6 +11,6 @@ rm -rf ./dist
 rm -rf CodingAgent.egg-info
 
 python -m build
-pip install . --force-reinstall
+pip install -e . --force-reinstall
 
 # or for debugging mode: use pip install -e .
