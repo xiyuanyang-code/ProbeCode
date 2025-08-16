@@ -2,57 +2,37 @@
 
 > [!WARNING]
 > This repo is still in construction process
-> To be refactored
+
+> [!TIP]
+> Congratulations! The initial dev release are available! See [Usage](#release) for more detail.
 
 ## Introduction
 
 We aim to create a **Repo Coding Agent** specializing in understanding extremely long and complex code blocks (even those exceeding the context length of an LLM). This agent will effectively read the relevant specialized code sections, thereby enhancing the LLM's code comprehension and generation capabilities for the given problem.
 
+> [!TIP]
 > It is just a toy implementation...
-
->[!TIP]
->Update: This project uses `uv` to manage environments.
+> Update: This project uses `uv` to manage environments.
 
 ## Current Constructing
 
 Stage I: We want to let LLM accept the full content for all lines of code of the repository, which can better improve the comprehension of overall code for LLM. ✅
 
-> [!WARNING]
-> We will not use `camel.agent.ChatAgent` as the fundamental agent, for it is too heavy.
-> Thus the code needs to be refactored.
+Stage II: Refactor the code & add basic code splitting tools. ✅
 
-We need to implement:
+Stage III: Integrating more MCP configs and MCP tools for code splitting
 
-- Show full context for large-language models.
+- Optimize pyparser and inspector for MCP tools
 
-- Add history management for multi LLM response.
+- build final coding agent pipeline
 
-- Finish the basic running pipeline for **Repo-Coding-Agent**.
+- Add more MCP configs, including MCP prompt, resources and sampling.
 
 Maybe in the next stage:
-
--  Add LLM tool use & MCP & functional call integration
--  Optimize history management and code block splitting (for optimizing long-context management)
-
-Stage II: Refactor the code & add basic code splitting tools
-
-- History Management
-
-    - Implement an advanced feature to compress historical records.
-
-- Basic Chat Loop Enhancements
-
-    - Improve the console's appearance.
-    - Integrate the logger module.
-    - Add more colors and information.
-
-Maybe in the next stage:
-
-- Add MCP tools for refactoring again
 
 - Add frontend components (HTML & CSS & JavaScripts)
 
-## Todo List
+### Todo List
 
 - [x] Complete the most basic functional design. ✅
 - [x] Complete basic file matching, filtering and walking class and util functions. ✅
@@ -62,8 +42,9 @@ Maybe in the next stage:
 - [x] Couple the two modules and build the final pipeline. ✅
 - [x] !REFACTOR: Remove camel. ✅
 - [x] !REBUILD: Developing a simple and lightweight LLM multi-turn conversation mini-app with history management. ✅
-    - [ ] Complete basic model history management
-    - [x] Figure out how mainstream LLMs manage history records
+    - [x] Complete basic model history management ✅
+    - [x] Figure out how mainstream LLMs manage history records ✅
+    - [x] Add advanced history settings. ✅
 - [ ] Module: basic code splitting part constructing
     - [x] Add basic python parser using `ast`. ✅
     - [ ] Debug and add more functions for analyzing the tools
@@ -75,6 +56,11 @@ Maybe in the next stage:
     - [ ] Finish MCP resources settings
     - [ ] Finish MCP Sampling
     - Relevant Web: [MCP Components](https://huggingface.co/learn/mcp-course/en/unit1/key-concepts)
+
+- [ ] Fix: relative file path and using pip to install
+    - [ ] Make the package can be run in any folder
+    - [ ] Make the package can be installed with `pip install -e .`
+    - [ ] Fix the problem for relative file path
 
 ## Structure
 
@@ -89,14 +75,17 @@ Maybe in the next stage:
 │   │   └── context_manager.py
 │   ├── llm
 │   │   ├── __init__.py
-│   │   ├── agent.py
-│   │   ├── client_utils.py
+│   │   ├── agent
+│   │   │   ├── base_chat.py
+│   │   │   ├── client_chat.py
+│   │   │   └── memory.py
 │   │   ├── config.json
 │   │   ├── mcp_tool_integrate.py
 │   │   ├── prompt.py
-│   │   └── tools
-│   │       ├── file_ops.py
-│   │       └── web_search.py
+│   │   ├── tools
+│   │   │   ├── file_ops.py
+│   │   │   └── web_search.py
+│   │   └── utils.py
 │   ├── main.py
 │   ├── pyparser
 │   │   ├── README.md
@@ -125,3 +114,95 @@ Maybe in the next stage:
 ├── run.sh
 └── uv.lock
 ```
+
+## RELEASE
+
+We are happy to announce that the initial light version of the CodingAgent is available!
+The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. For now, it can only be invoked using a Python script from the project repository's root directory with the command below.
+
+### Settings
+
+To use the LLM module, see [Settings Tutorial](./CodingAgent/llm/README.md) for more information.
+
+- For simple LLM response, we use `Anthropic` for our base model usage, thus `ANTHROPIC_API_KEY` and `ANTHROPIC_BASE_URL` are required.
+
+    - Model Type and MCP config can be manually defined in [`config.json`](../llm/config.json)
+
+    ```json
+    {
+        "model": {
+            "model_name": [
+                "claude-3-5-haiku-20241022",
+                "claude-sonnet-4-20250514",
+                // you can add more here...
+                // the default calling sequence is by index.
+            ]
+        },
+        "servers": {
+            "tools": {
+                "command": "uv",
+                "args": [
+                    "run",
+                    "CodingAgent/llm/mcp_tool_integrate.py"
+                ]
+            }
+        }
+    }
+    ```
+
+    - If you want to customize your own MCP-tools, write functions and pretty docstring in `./CodingAgent/llm/tools` folder, and MCP server will automatically grasp all the functions and view them as available tools. 
+    - For Current supported tools, see [this docs](./CodingAgent/llm/tools/README.md).
+
+- For web-search tools, `ZHIPU_API_KEY` is required in environment variables. We recommend you to write into your `~/.zshrc` or `~/.bashrc` file.
+
+```bash
+export ANTHROPIC_API_KEY="switch to yours"
+
+# I just recommend this base url
+export ANTHROPIC_BASE_URL="https://api.openai-proxy.org/anthropic"
+
+# go to https://open.bigmodel.cn/usercenter/proj-mgmt/apikeys to generating your own api-key!
+export ZHIPU_API_KEY="switch to yours"
+```
+
+### Usage
+
+The chat interface supports:
+- Multi-turn conversations with context management
+- Tool calling via MCP protocol (now supporting file operations and web search for Chinese and English)
+- Agent Memory Management
+    - Automatic memory compression for long conversations
+    - Manual memory storage with the `/memory` command
+    - Write history into local files.
+- A beautiful CLI UI design.
+
+The current version supports a lightweight command-line chat interface with history management and tool calls. For now, it can only be invoked using a Python script from the project repository's root directory with the command:
+
+```bash
+git clone https://github.com/xiyuanyang-code/Repo-Coding-Agent.git
+cd Repo-Coding-Agent
+
+# get some preliminaries
+python -m CodingAgent.config
+
+# now doesn't support pip install -e . yet, to be finished in the future.
+# python>=3.10 is recommended
+pip install -r requirements.txt
+```
+
+Run the scripts via:
+
+```bash
+python CodingAgent/main.py
+```
+
+### DEMO
+
+Now the UI shows like that:
+
+![A simple Demo](../../assets/imgs/ui_initial.png)
+
+
+## Contributions
+
+All PRs are welcome. Email the author or raise an issue to communicate how to collaborate in this project.
