@@ -93,4 +93,4 @@ export ZHIPU_API_KEY="switch to yours"
 
 ### Demo
 
-![A simple Demo](../../assets/imgs/ui_initial.png)
+![A simple Demo](https://github.com/xiyuanyang-code/Repo-Coding-Agent/blob/master/assets/imgs/ui_initial.png)
