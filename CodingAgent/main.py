@@ -67,7 +67,7 @@ async def main():
     args_dict = parsing_arguments()
     project_context = get_project_context(args_dict["project_path"])
     chatbox = MCPChat(
-        config_file="/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/llm/config.json"
+        config_file="./CodingAgent/llm/config.json"
     )
     await chatbox.connect(server_name="tools")
     logger.info("[MAIN]: ENDING SERVICE")

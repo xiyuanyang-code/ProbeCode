@@ -34,7 +34,7 @@ class UserChat:
                 "system": "#3498db bold",
                 "error": "#e74c3c bold",
                 "toolbar": "#34495e bg:#ecf0f1",
-                "thinking": "pink"
+                "thinking": "pink",
             }
         )
 
@@ -96,7 +96,10 @@ class UserChat:
                 ),
             )
 
-            self.display_thinking_message()
+            random_number = random.randint(1, 4)
+            if random_number == 4:
+                # get some egg
+                self.display_thinking_message()
 
             return user_input.strip()
 
@@ -117,7 +120,9 @@ class UserChat:
         print_formatted_text(styled_message, style=self.style)
 
     def display_thinking_message(self):
-        styled_message = FormattedText([("class:thinking", f"{self.get_random_jokes()}")])
+        styled_message = FormattedText(
+            [("class:thinking", f"{self.get_random_jokes()}")]
+        )
         print_formatted_text(styled_message, style=self.style)
 
 
