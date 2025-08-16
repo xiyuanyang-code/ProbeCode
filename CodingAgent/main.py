@@ -10,6 +10,7 @@ import asyncio
 sys.path.append(os.getcwd())
 
 from CodingAgent.inspector.context_manager import FileContentReader
+from CodingAgent.config import load_config
 from CodingAgent.utils.log import setup_logging_config
 from CodingAgent.llm.agent.client_chat import MCPChat
 
@@ -61,17 +62,25 @@ def get_project_context(project_path: str) -> str:
     return str(system_message)
 
 
-async def main():
+async def main_():
     """Main function to run the coding agent service."""
     logger.info("[MAIN]: STARTING SERVICE")
     args_dict = parsing_arguments()
+    config = load_config()
     project_context = get_project_context(args_dict["project_path"])
     chatbox = MCPChat(
-        config_file="./CodingAgent/llm/config.json"
+        config_file=os.path.join(
+            config.get("default_dir"), "CodingAgent/llm/config.json"
+        )
     )
     await chatbox.connect(server_name="tools")
     logger.info("[MAIN]: ENDING SERVICE")
 
 
+def main():
+    asyncio.run(main_())
+
+
 if __name__ == "__main__":
-    asyncio.run(main())
+    print("We recommend you to run this project via pip")
+    asyncio.run(main_())

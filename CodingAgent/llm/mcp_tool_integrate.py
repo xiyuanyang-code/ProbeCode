@@ -1,10 +1,12 @@
 import os
 import sys
+
 sys.path.append(os.getcwd())
 
 import importlib
 import inspect
 from mcp.server.fastmcp import FastMCP
+from CodingAgent.config import load_config
 
 # Create a single MCP server instance with a name.
 mcp = FastMCP("all_tools")
@@ -49,7 +51,10 @@ def register_tools_from_modules(module_list: list[str]):
 
 if __name__ == "__main__":
     # Get the list of modules by scanning the 'tools' directory.
-    tools_directory = "./CodingAgent/llm/tools"
+    config = load_config()
+    default_dir = config.get("default_dir")
+    tools_directory = os.path.join(default_dir, "CodingAgent/llm/tools")
+    print(tools_directory)
     tool_modules = get_tool_modules_from_directory(tools_directory)
 
     tool_modules_ = [
