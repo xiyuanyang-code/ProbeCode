@@ -1,83 +1,220 @@
 # PYPARSER: Python Code Structure Parser
 
-This tool can parse Python files and extract information about classes and functions defined in them.
+This tool can parse Python files and extract information about classes and functions defined in them, it will be used as an MCP tool for Agents to read and understand long-context Python files.
+
+Source Code: [`parser.py`](./parser.py)
 
 ## Features
-- Parse Python files using AST (Abstract Syntax Tree)
-- Extract all class definitions and their information
-- Extract all function definitions and their information
-- Extract docstrings for classes and functions
-- Support for command-line interface
-- Module interface for programmatic usage
-- Unified class with both programmatic access and console output capabilities
+- Parse Python files using AST (Abstract Syntax Tree).
+- Extract all class definitions, all function definitions and top-level code, as well as some concrete information.
+- Support both for command-line interface and module interface for MCP tool usage.
 
 ## Usage
 
-### Command-line usage
 
-```bash
-python unified_parser.py <input_file.py>
-```
+- Command-line usage
 
-### Module usage
+    ```bash
+    python parser.py <input_file.py>
+    ```
 
-```python
-from unified_parser import PythonStructureParser
+- Module usage
 
-# Create parser instance
-parser = PythonStructureParser("example.py")
+    ```python
+    # for interface functions
+    from CodingAgent.pyparser.parser import parse_python_file
 
-# Parse the file
-if parser.parse_file():
-    parser.extract_classes_and_functions()
-    
-    # Get results without printing to console
-    results = parser.get_results()
-    
-    # Access the results
-    print(f"File: {results['file_path']}")
-    print(f"Classes found: {len(results['classes'])}")
-    print(f"Functions found: {len(results['functions'])}")
-    
-    # Access class information
-    for cls in results['classes']:
-        print(f"Class: {cls['name']}")
-        print(f"  Docstring: {cls['docstring']}")
-        print(f"  Methods: {len(cls['methods'])}")
+    def simple_test():
+        results = parse_python_file("./CodingAgent/pyparser/example/simple.py")
+        with open("./CodingAgent/pyparser/example/simple_result.json", "w") as file:
+            json.dump(results, file, indent=2, ensure_ascii=False, sort_keys=True)
+    ```
+
+    ```python
+    # parse_python_file is written based on class PythonStructureParser
+
+    def parse_python_file(file_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Parses a Python file and returns structured information about its classes,
+        functions, and top-level statements.
         
-    # Access function information
-    for func in results['functions']:
-        print(f"Function: {func['name']}")
-        print(f"  Docstring: {func['docstring']}")
-
-# Or print results directly to console
-parser.print_results()
-```
+        Args:
+            file_path (str): Path to the Python file to parse.
+            
+        Returns:
+            Optional[Dict[str, Any]]: Dictionary with parsed information or None
+                                    if parsing failed.
+        """
+        parser = PythonStructureParser(file_path)
+        if parser.parse_file():
+            parser.extract_classes_and_functions()
+            return parser.get_results()
+        return None
+    ```
 
 ## Return Structure
-The `get_results()` method returns a dictionary with the following structure:
-```python
+
+Just like the syntactic analysis parser does, this parser will use AST (abstract syntax tree) for splitting. It will be categorized into:
+
+- Function Definition
+
+- Class Definition
+
+- Top Level Code: will be executed immediately in scripts
+
+Thus the json structure is like:
+
+```json
 {
-    'file_path': str,           # Path to the parsed file
-    'classes': [                # List of class information
-        {
-            'name': str,        # Class name
-            'line_start': int,  # Starting line number
-            'line_end': int,    # Ending line number
-            'methods': [...],   # List of method information (same structure as functions)
-            'bases': [...],     # List of base classes
-            'docstring': str    # Class docstring (if any)
-        }
-    ],
-    'functions': [              # List of function information
-        {
-            'name': str,        # Function name
-            'line_start': int,  # Starting line number
-            'line_end': int,    # Ending line number
-            'args': [...],      # List of argument information
-            'returns': str,     # Return type information
-            'docstring': str    # Function docstring (if any)
-        }
-    ]
+  "classes": [],
+  "file_path": "/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/pyparser/example/empty.py",
+  "functions": [],
+  "top_level_code": []
 }
 ```
+
+- classes: for each class is a dict, stores some detailed messages:
+    - Base Class
+    - Line start, Line End
+        - Maintain all the source code
+    - Methods: Treat functions
+    - Class Name
+    - Docstring
+
+- functions: for each function is a dict, stores some detailed messages:
+    - function name
+    - docstring
+    - args
+    - return
+    - line start, line end
+        - Maintain all the source code
+
+> [!WARNING]
+> The storage for top level code is being refactored.
+
+- Top Level Code
+    - Stored Line by Line
+    - type: `Import`, `Assign`, `If`, etc.
+    - line start, line end
+        - Source Code
+
+
+### Example
+
+Take [`simple.py`](./example/simple.py) as an example:
+
+<details>
+
+<summary> Example for simple.py </summary>
+
+```python
+import os
+import sys
+
+HELLO = "123456"
+
+def hello():
+    print("Hello world")
+    i = 300
+
+class TestClass():
+    def __init__(self):
+        self.time = "20250505"
+    
+    def run(self):
+        print("This class is running!")
+
+if __name__ == "__main__":
+    test = TestClass()
+    hello()
+    test.run()
+```
+
+The json file after parsing looks like:
+
+```json
+{
+  "classes": [
+    {
+      "bases": [],
+      "docstring": null,
+      "line_end": 15,
+      "line_start": 10,
+      "methods": [
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 12,
+          "line_start": 11,
+          "name": "__init__",
+          "returns": null,
+          "source_code": "    def __init__(self):\n        self.time = \"20250505\""
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 15,
+          "line_start": 14,
+          "name": "run",
+          "returns": null,
+          "source_code": "    def run(self):\n        print(\"This class is running!\")"
+        }
+      ],
+      "name": "TestClass",
+      "source_code": "class TestClass():\n    def __init__(self):\n        self.time = \"20250505\"\n    \n    def run(self):\n        print(\"This class is running!\")"
+    }
+  ],
+  "file_path": "./CodingAgent/pyparser/example/simple.py",
+  "functions": [
+    {
+      "args": [],
+      "docstring": null,
+      "line_end": 8,
+      "line_start": 6,
+      "name": "hello",
+      "returns": null,
+      "source_code": "def hello():\n    print(\"Hello world\")\n    i = 300"
+    }
+  ],
+  "top_level_code": [
+    {
+      "line_end": 1,
+      "line_start": 1,
+      "source_code": "import os",
+      "type": "Import"
+    },
+    {
+      "line_end": 2,
+      "line_start": 2,
+      "source_code": "import sys",
+      "type": "Import"
+    },
+    {
+      "line_end": 4,
+      "line_start": 4,
+      "source_code": "HELLO = \"123456\"",
+      "type": "Assign"
+    },
+    {
+      "line_end": 20,
+      "line_start": 17,
+      "source_code": "if __name__ == \"__main__\":\n    test = TestClass()\n    hello()\n    test.run()",
+      "type": "If"
+    }
+  ]
+}
+```
+
+</details>
