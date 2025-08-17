@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 """
 Python File Structure Parser
-Extracts class and function information from Python files
-Supports both programmatic access and console output
+Extracts class and function information from Python files, including source code,
+docstrings, and detailed parameter information. It also extracts all top-level
+statements not contained within classes or functions.
+Supports both programmatic access and console output.
 """
 
 import ast
@@ -11,30 +13,37 @@ from typing import List, Dict, Any, Optional
 
 
 class PythonStructureParser:
-    """Parses Python files and extracts class and function information"""
+    """
+    Parses Python files and extracts class and function information,
+    along with top-level statements.
+    """
     
     def __init__(self, file_path: str):
         """
-        Initialize the parser with a file path
+        Initializes the parser with a file path.
         
         Args:
-            file_path (str): Path to the Python file to parse
+            file_path (str): Path to the Python file to parse.
         """
         self.file_path = file_path
         self.tree = None
+        self.source_lines = []
         self.classes = []
         self.functions = []
+        self.top_level_code = []
         
     def parse_file(self) -> bool:
         """
-        Read and parse the Python file
+        Reads and parses the Python file.
         
         Returns:
-            bool: True if parsing was successful, False otherwise
+            bool: True if parsing was successful, False otherwise.
         """
         try:
             with open(self.file_path, 'r', encoding='utf-8') as file:
                 source_code = file.read()
+                self.source_lines = source_code.splitlines()
+                # Use ast to parse the file
                 self.tree = ast.parse(source_code)
             return True
         except FileNotFoundError:
@@ -46,38 +55,75 @@ class PythonStructureParser:
             
     def extract_classes_and_functions(self) -> None:
         """
-        Extract class and function information from the parsed AST
+        Extracts class, function, and top-level code information from the parsed AST.
         """
         if not self.tree:
-            print("Error: File must be parsed first")
+            print("Error: File must be parsed first.")
             return
             
-        for node in ast.walk(self.tree):
+        for node in self.tree.body:
             if isinstance(node, ast.ClassDef):
                 class_info = self._extract_class_info(node)
                 self.classes.append(class_info)
             elif isinstance(node, ast.FunctionDef):
                 func_info = self._extract_function_info(node)
-                # Only add functions that are not methods (module-level functions)
-                if not self._is_method(node):
-                    self.functions.append(func_info)
+                self.functions.append(func_info)
+            else:
+                # This is a top-level statement (not a class or function)
+                code_info = {
+                    'type': type(node).__name__,
+                    'line_start': node.lineno,
+                    'line_end': node.end_lineno,
+                    'source_code': self._extract_source_code(node, check_docstring=False)
+                }
+                self.top_level_code.append(code_info)
                     
-    def _extract_class_info(self, node: ast.ClassDef) -> Dict[str, Any]:
+    def _extract_source_code(self, node: ast.AST, check_docstring: bool = True) -> str:
         """
-        Extract information about a class
+        Extracts the source code snippet for a given AST node.
         
         Args:
-            node (ast.ClassDef): AST node representing a class
+            node (ast.AST): The AST node to extract code for.
+            check_docstring (bool): If True, removes the docstring from the
+                                     extracted code.
+        
+        Returns:
+            str: The source code snippet.
+        """
+        if not hasattr(node, 'lineno') or not hasattr(node, 'end_lineno'):
+            return ""
+
+        start_line = node.lineno - 1
+        end_line = node.end_lineno
+        lines = self.source_lines[start_line:end_line]
+        
+        # Remove the docstring from the source code to avoid duplication
+        if check_docstring:
+            docstring_node = next((n for n in node.body if isinstance(n, ast.Expr) and isinstance(n.value, ast.Constant) and isinstance(n.value.value, str)), None)
+            if docstring_node:
+                doc_start_line = docstring_node.lineno - 1
+                doc_end_line = docstring_node.end_lineno
+                # Create a new list of lines without the docstring
+                lines_without_doc = lines[:doc_start_line - start_line] + lines[doc_end_line - start_line:]
+                return '\n'.join(lines_without_doc)
+            
+        return '\n'.join(lines)
+            
+    def _extract_class_info(self, node: ast.ClassDef) -> Dict[str, Any]:
+        """
+        Extracts information about a class.
+        
+        Args:
+            node (ast.ClassDef): AST node representing a class.
             
         Returns:
-            Dict[str, Any]: Dictionary containing class information
+            Dict[str, Any]: Dictionary containing class information.
         """
         methods = []
         for item in node.body:
             if isinstance(item, ast.FunctionDef):
                 methods.append(self._extract_function_info(item))
                 
-        # Extract docstring if available
         docstring = ast.get_docstring(node)
                 
         return {
@@ -85,19 +131,20 @@ class PythonStructureParser:
             'line_start': node.lineno,
             'line_end': node.end_lineno,
             'methods': methods,
-            'bases': [ast.dump(base) for base in node.bases],
-            'docstring': docstring
+            'bases': [ast.unparse(base) for base in node.bases],
+            'docstring': docstring,
+            'source_code': self._extract_source_code(node)
         }
         
     def _extract_function_info(self, node: ast.FunctionDef) -> Dict[str, Any]:
         """
-        Extract information about a function
+        Extracts information about a function.
         
         Args:
-            node (ast.FunctionDef): AST node representing a function
+            node (ast.FunctionDef): AST node representing a function.
             
         Returns:
-            Dict[str, Any]: Dictionary containing function information
+            Dict[str, Any]: Dictionary containing function information.
         """
         args = []
         defaults = node.args.defaults
@@ -108,19 +155,18 @@ class PythonStructureParser:
         for i, arg in enumerate(node.args.args):
             arg_info = {
                 'name': arg.arg,
-                'annotation': ast.dump(arg.annotation) if arg.annotation else None
+                'annotation': ast.unparse(arg.annotation) if arg.annotation else None
             }
             
             # Add default value information
             if i >= args_count - num_defaults:
                 default_index = i - (args_count - num_defaults)
-                arg_info['default'] = ast.dump(defaults[default_index])
+                arg_info['default'] = ast.unparse(defaults[default_index])
             else:
                 arg_info['default'] = None
                 
             args.append(arg_info)
             
-        # Extract docstring if available
         docstring = ast.get_docstring(node)
             
         return {
@@ -128,44 +174,29 @@ class PythonStructureParser:
             'line_start': node.lineno,
             'line_end': node.end_lineno,
             'args': args,
-            'returns': ast.dump(node.returns) if node.returns else None,
-            'docstring': docstring
+            'returns': ast.unparse(node.returns) if node.returns else None,
+            'docstring': docstring,
+            'source_code': self._extract_source_code(node)
         }
-        
-    def _is_method(self, node: ast.FunctionDef) -> bool:
-        """
-        Check if a function is a method of a class
-        
-        Args:
-            node (ast.FunctionDef): AST node representing a function
-            
-        Returns:
-            bool: True if the function is a method, False otherwise
-        """
-        # Walk through the AST to find the function's context
-        for parent in ast.walk(self.tree):
-            if isinstance(parent, ast.ClassDef):
-                for item in parent.body:
-                    if item == node:
-                        return True
-        return False
         
     def get_results(self) -> Dict[str, Any]:
         """
-        Get the parsed results as a structured dictionary without printing
+        Gets the parsed results as a structured dictionary without printing.
         
         Returns:
-            Dict[str, Any]: Dictionary containing parsed classes and functions
+            Dict[str, Any]: Dictionary containing parsed classes, functions,
+                            and top-level code.
         """
         return {
             'file_path': self.file_path,
             'classes': self.classes,
-            'functions': self.functions
+            'functions': self.functions,
+            'top_level_code': self.top_level_code
         }
         
     def print_results(self) -> None:
         """
-        Print parsed results to console
+        Prints parsed results to the console.
         """
         results = self.get_results()
         
@@ -191,14 +222,20 @@ class PythonStructureParser:
             for func in results['functions']:
                 self._print_function_info(func, indent=2)
                 print()
+        
+        if results['top_level_code']:
+            print("Top-Level Code:")
+            for code_block in results['top_level_code']:
+                self._print_top_level_code_info(code_block, indent=2)
+                print()
                 
     def _print_function_info(self, func_info: Dict[str, Any], indent: int = 0) -> None:
         """
-        Print function information with specified indentation
+        Prints function information with specified indentation.
         
         Args:
-            func_info (Dict[str, Any]): Dictionary containing function information
-            indent (int): Number of spaces to indent the output
+            func_info (Dict[str, Any]): Dictionary containing function information.
+            indent (int): Number of spaces to indent the output.
         """
         spaces = " " * indent
         print(f"{spaces}Function: {func_info['name']}")
@@ -214,17 +251,42 @@ class PythonStructureParser:
                 print(f"{spaces}    {arg['name']}{annotation_str}{default_str}")
         if func_info['returns']:
             print(f"{spaces}  Return type: {func_info['returns']}")
+        
+        # Print the source code
+        print(f"{spaces}  Source Code:\n{spaces}---")
+        for line in func_info['source_code'].splitlines():
+            print(f"{spaces}  {line}")
+        print(f"{spaces}---")
+
+    def _print_top_level_code_info(self, code_info: Dict[str, Any], indent: int = 0) -> None:
+        """
+        Prints top-level code information with specified indentation.
+
+        Args:
+            code_info (Dict[str, Any]): Dictionary containing top-level code information.
+            indent (int): Number of spaces to indent the output.
+        """
+        spaces = " " * indent
+        print(f"{spaces}Statement Type: {code_info['type']}")
+        print(f"{spaces}  Start line: {code_info['line_start']}")
+        print(f"{spaces}  End line: {code_info['line_end']}")
+        print(f"{spaces}  Source Code:\n{spaces}---")
+        for line in code_info['source_code'].splitlines():
+            print(f"{spaces}  {line}")
+        print(f"{spaces}---")
 
 
 def parse_python_file(file_path: str) -> Optional[Dict[str, Any]]:
     """
-    Parse a Python file and return structured information about its classes and functions
+    Parses a Python file and returns structured information about its classes,
+    functions, and top-level statements.
     
     Args:
-        file_path (str): Path to the Python file to parse
+        file_path (str): Path to the Python file to parse.
         
     Returns:
-        Optional[Dict[str, Any]]: Dictionary with parsed information or None if parsing failed
+        Optional[Dict[str, Any]]: Dictionary with parsed information or None
+                                   if parsing failed.
     """
     parser = PythonStructureParser(file_path)
     if parser.parse_file():
@@ -234,12 +296,13 @@ def parse_python_file(file_path: str) -> Optional[Dict[str, Any]]:
 
 
 def main():
-    """Main function for command-line usage"""
+    """Main function for command-line usage."""
     if len(sys.argv) != 2:
-        print("Usage: python unified_parser.py <input_file.py>")
+        print("Usage: python parser.py <input_file.py>")
         sys.exit(1)
         
     file_path = sys.argv[1]
+
     parser = PythonStructureParser(file_path)
     if parser.parse_file():
         parser.extract_classes_and_functions()
