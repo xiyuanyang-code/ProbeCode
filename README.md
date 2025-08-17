@@ -1,8 +1,8 @@
 # ProbeCode
 
-![ProbeCode](./assets/imgs/probecode.png)
-
 AI coding agent integrating static code inspection with a ReAct framework to understand and memorize long-context code.
+
+![ProbeCode](./assets/imgs/probecode.png)
 
 > [!IMPORTANT]
 > Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
@@ -44,7 +44,18 @@ See [Todo List](#todo-list) for more information.
 
 ## WorkFlow
 
-tobe done
+- Code Preprocessing
+    - Inspector: Inspect files for filtering.
+    - Parser: Parse Python files into standard JSON files, which act like the environment with the Agent.
+
+- Chat Process
+    - ReAct[^1] Agent Structure: Environment and Reasoning.
+    - Enhanced with Tool Usage.
+    - Intelligent Agent Memory, supports memory management and compression, including long-term and short-term memory.
+
+- DownStream Applications: More than simple ProbeCode!
+    - Purely Python Developing, you can freely add downstream apps.
+    - Custom MCP tool definition enhance agent's usage.
 
 ## Structure
 
@@ -240,8 +251,8 @@ All PRs are welcome. Email the author or raise an issue to communicate how to co
     - [x] Add advanced history settings. ✅
 - [ ] Module: basic code splitting part constructing
     - [x] Add basic python parser using `ast`. ✅
-    - [ ] Debug and add more functions for analyzing the tools
-    - [ ] Integrate this independent modules into pipeline
+    - [x] Debug and add more functions for analyzing the tools ✅
+    - [x] Integrate this independent modules into pipeline ✅
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
     - [x] Finish MCP tools settings
@@ -256,3 +267,6 @@ All PRs are welcome. Email the author or raise an issue to communicate how to co
     - [x] Make the package can be installed with `pip install -e .` ✅
     - [x] Fix the problem for relative file path ✅
 
+## References
+
+[^1]: [React architecture](https://arxiv.org/abs/2210.03629)
