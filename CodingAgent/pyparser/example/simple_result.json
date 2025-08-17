@@ -1,0 +1,124 @@
+{
+  "classes": [
+    {
+      "bases": [],
+      "docstring": null,
+      "line_end": 15,
+      "line_start": 10,
+      "methods": [
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 12,
+          "line_start": 11,
+          "name": "__init__",
+          "returns": null,
+          "source_code": "    def __init__(self):\n        self.time = \"20250505\""
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 15,
+          "line_start": 14,
+          "name": "run",
+          "returns": null,
+          "source_code": "    def run(self):\n        print(\"This class is running!\")"
+        }
+      ],
+      "name": "TestClass",
+      "source_code": "class TestClass():\n    def __init__(self):\n        self.time = \"20250505\"\n    \n    def run(self):\n        print(\"This class is running!\")"
+    },
+    {
+      "bases": [
+        "TestClass"
+      ],
+      "docstring": null,
+      "line_end": 23,
+      "line_start": 17,
+      "methods": [
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 20,
+          "line_start": 18,
+          "name": "__init__",
+          "returns": null,
+          "source_code": "    def __init__(self):\n        super().__init__()\n        self.another_time = \"233\""
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 23,
+          "line_start": 22,
+          "name": "run",
+          "returns": null,
+          "source_code": "    def run(self):\n        print(\"This class is running!\")"
+        }
+      ],
+      "name": "TestClass2",
+      "source_code": "class TestClass2(TestClass):\n    def __init__(self):\n        super().__init__()\n        self.another_time = \"233\"\n    \n    def run(self):\n        print(\"This class is running!\")"
+    }
+  ],
+  "file_path": "./CodingAgent/pyparser/example/simple.py",
+  "functions": [
+    {
+      "args": [],
+      "docstring": null,
+      "line_end": 8,
+      "line_start": 6,
+      "name": "hello",
+      "returns": null,
+      "source_code": "def hello():\n    print(\"Hello world\")\n    i = 300"
+    }
+  ],
+  "top_level_code": [
+    {
+      "line_end": 1,
+      "line_start": 1,
+      "source_code": "import os",
+      "type": "Import"
+    },
+    {
+      "line_end": 2,
+      "line_start": 2,
+      "source_code": "import sys",
+      "type": "Import"
+    },
+    {
+      "line_end": 4,
+      "line_start": 4,
+      "source_code": "HELLO = \"123456\"",
+      "type": "Assign"
+    },
+    {
+      "line_end": 28,
+      "line_start": 25,
+      "source_code": "if __name__ == \"__main__\":\n    test = TestClass()\n    hello()\n    test.run()",
+      "type": "If"
+    }
+  ]
+}

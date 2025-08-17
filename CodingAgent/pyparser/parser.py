@@ -295,7 +295,7 @@ def parse_python_file(file_path: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def main():
+def CLI():
     """Main function for command-line usage."""
     if len(sys.argv) != 2:
         print("Usage: python parser.py <input_file.py>")
@@ -310,4 +310,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    CLI()
