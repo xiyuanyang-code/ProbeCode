@@ -1,11 +1,15 @@
-# Repo-Coding Agent
+# ProbeCode
+
+AI coding agent integrating static code inspection with a ReAct[^1] framework to understand and memorize long-context code.
+
+![ProbeCode](./assets/imgs/probecode.png)
 
 > [!IMPORTANT]
-> Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
+> Congratulations! The initial dev release `0.2.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
 
 ## Introduction
 
-We're developing a **Repo Coding Agent** designed to operate at the **project level**. This agent addresses the core challenge of managing extremely long and complex codebases that exceed a typical LLM's context window. It does this by intelligently identifying and reading only the relevant, specialized code sections, which in turn significantly boosts the LLM's comprehension and code generation capabilities for any given problem.
+We're developing a **Repo Coding Agent**, named **ProbeCode**, which is designed to operate and comprehend codes at the **project level**. This agent addresses the core challenge of managing extremely long and complex codebases that exceed a typical LLM's context window. It solve this problem by intelligently identifying and reading only the relevant, specialized code sections, which in turn significantly boosts the LLM's comprehension and code generation capabilities for any given problem.
 
 Here are the key features and benefits of our agent:
 
@@ -38,6 +42,21 @@ See [Todo List](#todo-list) for more information.
 
 </details>
 
+## WorkFlow
+
+- Code Preprocessing
+    - Inspector: Inspect files for filtering.
+    - Parser: Parse Python files into standard JSON files, which act like the environment with the Agent.
+    - This process will finish automatically, all the json file will be stored in `./.environment` folder for future MCP tool calling and reading.
+
+- Chat Process
+    - ReAct[^1] Agent Structure: Environment and Reasoning.
+    - Enhanced with Tool Usage.
+    - Intelligent Agent Memory, supports memory management and compression, including long-term and short-term memory.
+
+- DownStream Applications: More than simple ProbeCode!
+    - Purely Python Developing, you can freely add downstream apps.
+    - Custom MCP tool definition enhance agent's usage.
 
 ## Structure
 
@@ -100,8 +119,8 @@ Install several packages with `uv` or `pip`.
 
 ```bash
 # python >= 3.10
-git clone https://github.com/xiyuanyang-code/Repo-Coding-Agent.git
-cd Repo-Coding-Agent
+git clone https://github.com/xiyuanyang-code/ProbeCode.git
+cd ProbeCode
 
 # install packages
 # METHOD1: using uv (recommended)
@@ -141,7 +160,7 @@ export ZHIPU_API_KEY="switch to yours"
 
 ### MCP Settings
 
-Model Name and custom MCP config can be manually defined in [`config.json`](../llm/config.json)
+Model Name and custom MCP config can be manually defined in [`config.json`](./CodingAgent/llm/config.json)
 
 > [!Note]
 > Skip this part for default settings.
@@ -184,19 +203,18 @@ Model Name and custom MCP config can be manually defined in [`config.json`](../l
 
 ```bash
 # change to your current working directory
-coding_agent
+probecode
 
-# then enjoy the chat with coding agent!
+# then enjoy the chat with ProbeCode!
 ```
 
-After typing the commands above, you can chat with the chatbox! 
+After typing the commands above, you can chat with ProbeCode! 
 
 - It will create a file named `.history.txt` which stores all the historical command you have typed in. 
 
 - It will record the dialogue history in 'history' in the original folder (where you clone this project). 
 
 - Logs will be saved here as well (in log in the original folder)
-
 
 The chat interface supports:
 - Multi-turn conversations with context management
@@ -234,8 +252,8 @@ All PRs are welcome. Email the author or raise an issue to communicate how to co
     - [x] Add advanced history settings. ✅
 - [ ] Module: basic code splitting part constructing
     - [x] Add basic python parser using `ast`. ✅
-    - [ ] Debug and add more functions for analyzing the tools
-    - [ ] Integrate this independent modules into pipeline
+    - [x] Debug and add more functions for analyzing the tools ✅
+    - [x] Integrate this independent modules into pipeline ✅
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
     - [x] Finish MCP tools settings
@@ -250,3 +268,6 @@ All PRs are welcome. Email the author or raise an issue to communicate how to co
     - [x] Make the package can be installed with `pip install -e .` ✅
     - [x] Fix the problem for relative file path ✅
 
+## References
+
+[^1]: [React architecture](https://arxiv.org/abs/2210.03629)
