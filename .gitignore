@@ -185,3 +185,4 @@ CodingAgent/pyparser/result/
 .history.txt
 history/
 .environment
+uv.lock

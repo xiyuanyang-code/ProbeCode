@@ -81,7 +81,7 @@ async def main_():
     project_context = get_project_context(args_dict["project_path"])
 
     # section3: initializing MCP chatbot
-    console.print("[purple]MCP ChatBot is coming...[/purple]")
+    console.print("[purple]ProbeCode Agent is coming...[/purple]")
     chatbox = MCPChat(
         config_file=os.path.join(
             config.get("default_dir"), "CodingAgent/llm/config.json"
