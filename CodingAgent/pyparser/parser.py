@@ -8,6 +8,7 @@ Supports both programmatic access and console output.
 """
 
 import ast
+import os
 import sys
 from typing import List, Dict, Any, Optional
 
@@ -25,7 +26,7 @@ class PythonStructureParser:
         Args:
             file_path (str): Path to the Python file to parse.
         """
-        self.file_path = file_path
+        self.file_path = os.path.abspath(file_path) if not os.path.isabs(file_path) else file_path
         self.tree = None
         self.source_lines = []
         self.classes = []

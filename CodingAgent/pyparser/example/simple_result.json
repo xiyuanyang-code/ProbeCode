@@ -83,7 +83,7 @@
       "source_code": "class TestClass2(TestClass):\n    def __init__(self):\n        super().__init__()\n        self.another_time = \"233\"\n    \n    def run(self):\n        print(\"This class is running!\")"
     }
   ],
-  "file_path": "./CodingAgent/pyparser/example/simple.py",
+  "file_path": "/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/pyparser/example/simple.py",
   "functions": [
     {
       "args": [],

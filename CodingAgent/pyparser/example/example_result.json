@@ -318,7 +318,7 @@
       "source_code": "class StringUtils:\n    \n    @staticmethod\n    def reverse_string(s: str) -> str:\n        \"\"\"\n        Reverses a string.\n\n        Args:\n            s (str): The string to reverse.\n\n        Returns:\n            str: The reversed string.\n        \"\"\"\n        return s[::-1]\n        \n    @staticmethod\n    def is_palindrome(s: str) -> bool:\n        \"\"\"\n        Checks if a string is a palindrome.\n\n        Args:\n            s (str): The string to check.\n\n        Returns:\n            bool: True if the string is a palindrome, False otherwise.\n        \"\"\"\n        s_cleaned = \"\".join(filter(str.isalnum, s)).lower()\n        return s_cleaned == s_cleaned[::-1]\n\n    @staticmethod\n    def count_words(s: str) -> int:\n        \"\"\"\n        Counts the number of words in a string.\n\n        Args:\n            s (str): The string to count words from.\n\n        Returns:\n            int: The number of words in the string.\n        \"\"\"\n        return len(s.split())"
     }
   ],
-  "file_path": "./CodingAgent/pyparser/example/example.py",
+  "file_path": "/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/pyparser/example/example.py",
   "functions": [
     {
       "args": [
