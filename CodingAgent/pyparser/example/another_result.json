@@ -1,0 +1,1385 @@
+{
+  "classes": [
+    {
+      "bases": [
+        "BaseAgent"
+      ],
+      "docstring": "Class for managing conversations of CAMEL Chat Agents.\n\nArgs:\n    system_message (Union[BaseMessage, str], optional): The system message\n        for the chat agent. (default: :obj:`None`)\n    model (Union[BaseModelBackend, Tuple[str, str], str, ModelType,\n        Tuple[ModelPlatformType, ModelType], List[BaseModelBackend],\n        List[str], List[ModelType], List[Tuple[str, str]],\n        List[Tuple[ModelPlatformType, ModelType]]], optional):\n        The model backend(s) to use. Can be a single instance,\n        a specification (string, enum, tuple), or a list of instances\n        or specifications to be managed by `ModelManager`. If a list of\n        specifications (not `BaseModelBackend` instances) is provided,\n        they will be instantiated using `ModelFactory`. (default:\n        :obj:`ModelPlatformType.DEFAULT` with `ModelType.DEFAULT`)\n    memory (AgentMemory, optional): The agent memory for managing chat\n        messages. If `None`, a :obj:`ChatHistoryMemory` will be used.\n        (default: :obj:`None`)\n    message_window_size (int, optional): The maximum number of previous\n        messages to include in the context window. If `None`, no windowing\n        is performed. (default: :obj:`None`)\n    token_limit (int, optional): The maximum number of tokens in a context.\n        The context will be automatically pruned to fulfill the limitation.\n        If `None`, it will be set according to the backend model.\n        (default: :obj:`None`)\n    output_language (str, optional): The language to be output by the\n        agent. (default: :obj:`None`)\n    tools (Optional[List[Union[FunctionTool, Callable]]], optional): List\n        of available :obj:`FunctionTool` or :obj:`Callable`. (default:\n        :obj:`None`)\n    external_tools (Optional[List[Union[FunctionTool, Callable,\n        Dict[str, Any]]]], optional): List of external tools\n        (:obj:`FunctionTool` or :obj:`Callable` or :obj:`Dict[str, Any]`)\n        bind to one chat agent. When these tools are called, the agent will\n        directly return the request instead of processing it.\n        (default: :obj:`None`)\n    response_terminators (List[ResponseTerminator], optional): List of\n        :obj:`ResponseTerminator` bind to one chat agent.\n        (default: :obj:`None`)\n    scheduling_strategy (str): name of function that defines how to select\n        the next model in ModelManager. (default: :str:`round_robin`)\n    max_iteration (Optional[int], optional): Maximum number of model\n        calling iterations allowed per step. If `None` (default), there's\n        no explicit limit. If `1`, it performs a single model call. If `N\n        > 1`, it allows up to N model calls. (default: :obj:`None`)\n    agent_id (str, optional): The ID of the agent. If not provided, a\n        random UUID will be generated. (default: :obj:`None`)\n    stop_event (Optional[threading.Event], optional): Event to signal\n        termination of the agent's operation. When set, the agent will\n        terminate its execution. (default: :obj:`None`)",
+      "line_end": 2302,
+      "line_start": 125,
+      "methods": [
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Optional[Union[BaseMessage, str]]",
+              "default": "None",
+              "name": "system_message"
+            },
+            {
+              "annotation": "Optional[Union[BaseModelBackend, ModelManager, Tuple[str, str], str, ModelType, Tuple[ModelPlatformType, ModelType], List[BaseModelBackend], List[str], List[ModelType], List[Tuple[str, str]], List[Tuple[ModelPlatformType, ModelType]]]]",
+              "default": "None",
+              "name": "model"
+            },
+            {
+              "annotation": "Optional[AgentMemory]",
+              "default": "None",
+              "name": "memory"
+            },
+            {
+              "annotation": "Optional[int]",
+              "default": "None",
+              "name": "message_window_size"
+            },
+            {
+              "annotation": "Optional[int]",
+              "default": "None",
+              "name": "token_limit"
+            },
+            {
+              "annotation": "Optional[str]",
+              "default": "None",
+              "name": "output_language"
+            },
+            {
+              "annotation": "Optional[List[Union[FunctionTool, Callable]]]",
+              "default": "None",
+              "name": "tools"
+            },
+            {
+              "annotation": "Optional[List[Union[FunctionTool, Callable, Dict[str, Any]]]]",
+              "default": "None",
+              "name": "external_tools"
+            },
+            {
+              "annotation": "Optional[List[ResponseTerminator]]",
+              "default": "None",
+              "name": "response_terminators"
+            },
+            {
+              "annotation": "str",
+              "default": "'round_robin'",
+              "name": "scheduling_strategy"
+            },
+            {
+              "annotation": "Optional[int]",
+              "default": "None",
+              "name": "max_iteration"
+            },
+            {
+              "annotation": "Optional[str]",
+              "default": "None",
+              "name": "agent_id"
+            },
+            {
+              "annotation": "Optional[threading.Event]",
+              "default": "None",
+              "name": "stop_event"
+            }
+          ],
+          "docstring": null,
+          "line_end": 282,
+          "line_start": 178,
+          "name": "__init__",
+          "returns": "None",
+          "source_code": "    def __init__(\n        self,\n        system_message: Optional[Union[BaseMessage, str]] = None,\n        model: Optional[\n            Union[\n                BaseModelBackend,\n                ModelManager,\n                Tuple[str, str],\n                str,\n                ModelType,\n                Tuple[ModelPlatformType, ModelType],\n                List[BaseModelBackend],\n                List[str],\n                List[ModelType],\n                List[Tuple[str, str]],\n                List[Tuple[ModelPlatformType, ModelType]],\n            ]\n        ] = None,\n        memory: Optional[AgentMemory] = None,\n        message_window_size: Optional[int] = None,\n        token_limit: Optional[int] = None,\n        output_language: Optional[str] = None,\n        tools: Optional[List[Union[FunctionTool, Callable]]] = None,\n        external_tools: Optional[\n            List[Union[FunctionTool, Callable, Dict[str, Any]]]\n        ] = None,\n        response_terminators: Optional[List[ResponseTerminator]] = None,\n        scheduling_strategy: str = \"round_robin\",\n        max_iteration: Optional[int] = None,\n        agent_id: Optional[str] = None,\n        stop_event: Optional[threading.Event] = None,\n    ) -> None:\n        if isinstance(model, ModelManager):\n            self.model_backend = model\n        else:\n            # Resolve model backends and set up model manager\n            resolved_models = self._resolve_models(model)\n            self.model_backend = ModelManager(\n                resolved_models,\n                scheduling_strategy=scheduling_strategy,\n            )\n        self.model_type = self.model_backend.model_type\n\n        # Assign unique ID\n        self.agent_id = agent_id if agent_id else str(uuid.uuid4())\n\n        # Set up memory\n        context_creator = ScoreBasedContextCreator(\n            self.model_backend.token_counter,\n            token_limit or self.model_backend.token_limit,\n        )\n\n        self.memory: AgentMemory = memory or ChatHistoryMemory(\n            context_creator,\n            window_size=message_window_size,\n            agent_id=self.agent_id,\n        )\n\n        # So we don't have to pass agent_id when we define memory\n        if memory is not None:\n            memory.agent_id = self.agent_id\n\n        # Set up system message and initialize messages\n        self._original_system_message = (\n            BaseMessage.make_assistant_message(\n                role_name=\"Assistant\", content=system_message\n            )\n            if isinstance(system_message, str)\n            else system_message\n        )\n        self._output_language = output_language\n        self._system_message = (\n            self._generate_system_message_for_output_language()\n        )\n        self.init_messages()\n\n        # Set up role name and role type\n        self.role_name: str = (\n            getattr(self.system_message, \"role_name\", None) or \"assistant\"\n        )\n        self.role_type: RoleType = (\n            getattr(self.system_message, \"role_type\", None)\n            or RoleType.ASSISTANT\n        )\n\n        # Set up tools\n        self._internal_tools = {\n            tool.get_function_name(): tool\n            for tool in [\n                convert_to_function_tool(tool) for tool in (tools or [])\n            ]\n        }\n\n        self._external_tool_schemas = {\n            tool_schema[\"function\"][\"name\"]: tool_schema\n            for tool_schema in [\n                convert_to_schema(tool) for tool in (external_tools or [])\n            ]\n        }\n\n        # Set up other properties\n        self.terminated = False\n        self.response_terminators = response_terminators or []\n        self.max_iteration = max_iteration\n        self.stop_event = stop_event"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Resets the :obj:`ChatAgent` to its initial state.",
+          "line_end": 289,
+          "line_start": 284,
+          "name": "reset",
+          "returns": null,
+          "source_code": "    def reset(self):\n        self.terminated = False\n        self.init_messages()\n        for terminator in self.response_terminators:\n            terminator.reset()"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Optional[Union[BaseModelBackend, Tuple[str, str], str, ModelType, Tuple[ModelPlatformType, ModelType], List[BaseModelBackend], List[str], List[ModelType], List[Tuple[str, str]], List[Tuple[ModelPlatformType, ModelType]]]]",
+              "default": null,
+              "name": "model"
+            }
+          ],
+          "docstring": "Resolves model specifications into model backend instances.\n\nThis method handles various input formats for model specifications and\nreturns the appropriate model backend(s).\n\nArgs:\n    model: Model specification in various formats including single\n        model, list of models, or model type specifications.\n\nReturns:\n    Union[BaseModelBackend, List[BaseModelBackend]]: Resolved model\n        backend(s).\n\nRaises:\n    TypeError: If the model specification format is not supported.",
+          "line_end": 358,
+          "line_start": 291,
+          "name": "_resolve_models",
+          "returns": "Union[BaseModelBackend, List[BaseModelBackend]]",
+          "source_code": "    def _resolve_models(\n        self,\n        model: Optional[\n            Union[\n                BaseModelBackend,\n                Tuple[str, str],\n                str,\n                ModelType,\n                Tuple[ModelPlatformType, ModelType],\n                List[BaseModelBackend],\n                List[str],\n                List[ModelType],\n                List[Tuple[str, str]],\n                List[Tuple[ModelPlatformType, ModelType]],\n            ]\n        ],\n    ) -> Union[BaseModelBackend, List[BaseModelBackend]]:\n        if model is None:\n            # Default single model if none provided\n            return ModelFactory.create(\n                model_platform=ModelPlatformType.DEFAULT,\n                model_type=ModelType.DEFAULT,\n            )\n        elif isinstance(model, BaseModelBackend):\n            # Already a single pre-instantiated model\n            return model\n        elif isinstance(model, list):\n            return self._resolve_model_list(model)\n        elif isinstance(model, (ModelType, str)):\n            # Single string or ModelType -> use default platform\n            model_platform = ModelPlatformType.DEFAULT\n            model_type = model\n            logger.warning(\n                f\"Model type '{model_type}' provided without a platform. \"\n                f\"Using platform '{model_platform}'. Note: platform \"\n                \"is not automatically inferred based on model type.\"\n            )\n            return ModelFactory.create(\n                model_platform=model_platform,\n                model_type=model_type,\n            )\n        elif isinstance(model, tuple) and len(model) == 2:\n            # Single tuple (platform, type)\n            model_platform, model_type = model  # type: ignore[assignment]\n            return ModelFactory.create(\n                model_platform=model_platform,\n                model_type=model_type,\n            )\n        else:\n            raise TypeError(\n                f\"Unsupported type for model parameter: {type(model)}\"\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "list",
+              "default": null,
+              "name": "model_list"
+            }
+          ],
+          "docstring": "Resolves a list of model specifications into model backend\ninstances.\n\nArgs:\n    model_list (list): List of model specifications in various formats.\n\nReturns:\n    Union[BaseModelBackend, List[BaseModelBackend]]: Resolved model\n        backend(s).\n\nRaises:\n    TypeError: If the list elements format is not supported.",
+          "line_end": 423,
+          "line_start": 360,
+          "name": "_resolve_model_list",
+          "returns": "Union[BaseModelBackend, List[BaseModelBackend]]",
+          "source_code": "    def _resolve_model_list(\n        self, model_list: list\n    ) -> Union[BaseModelBackend, List[BaseModelBackend]]:\n        if not model_list:  # Handle empty list\n            logger.warning(\n                \"Empty list provided for model, using default model.\"\n            )\n            return ModelFactory.create(\n                model_platform=ModelPlatformType.DEFAULT,\n                model_type=ModelType.DEFAULT,\n            )\n        elif isinstance(model_list[0], BaseModelBackend):\n            # List of pre-instantiated models\n            return model_list  # type: ignore[return-value]\n        elif isinstance(model_list[0], (str, ModelType)):\n            # List of strings or ModelTypes -> use default platform\n            model_platform = ModelPlatformType.DEFAULT\n            logger.warning(\n                f\"List of model types {model_list} provided without \"\n                f\"platforms. Using platform '{model_platform}' for all. \"\n                \"Note: platform is not automatically inferred based on \"\n                \"model type.\"\n            )\n            resolved_models_list = []\n            for model_type_item in model_list:\n                resolved_models_list.append(\n                    ModelFactory.create(\n                        model_platform=model_platform,\n                        model_type=model_type_item,  # type: ignore[arg-type]\n                    )\n                )\n            return resolved_models_list\n        elif isinstance(model_list[0], tuple) and len(model_list[0]) == 2:\n            # List of tuples (platform, type)\n            resolved_models_list = []\n            for model_spec in model_list:\n                platform, type_ = (  # type: ignore[index]\n                    model_spec[0],\n                    model_spec[1],\n                )\n                resolved_models_list.append(\n                    ModelFactory.create(\n                        model_platform=platform, model_type=type_\n                    )\n                )\n            return resolved_models_list\n        else:\n            raise TypeError(\n                \"Unsupported type for list elements in model: \"\n                f\"{type(model_list[0])}\"\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns the system message for the agent.",
+          "line_end": 428,
+          "line_start": 426,
+          "name": "system_message",
+          "returns": "Optional[BaseMessage]",
+          "source_code": "    def system_message(self) -> Optional[BaseMessage]:\n        return self._system_message"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns a dictionary of internal tools.",
+          "line_end": 433,
+          "line_start": 431,
+          "name": "tool_dict",
+          "returns": "Dict[str, FunctionTool]",
+          "source_code": "    def tool_dict(self) -> Dict[str, FunctionTool]:\n        return self._internal_tools"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns the output language for the agent.",
+          "line_end": 438,
+          "line_start": 436,
+          "name": "output_language",
+          "returns": "Optional[str]",
+          "source_code": "    def output_language(self) -> Optional[str]:\n        return self._output_language"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "value"
+            }
+          ],
+          "docstring": "Set the output language for the agent.\n\nNote that this will clear the message history.",
+          "line_end": 450,
+          "line_start": 441,
+          "name": "output_language",
+          "returns": "None",
+          "source_code": "    def output_language(self, value: str) -> None:\n        self._output_language = value\n        self._system_message = (\n            self._generate_system_message_for_output_language()\n        )\n        self.init_messages()"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns a list of tool schemas of all tools, including internal\nand external tools.",
+          "line_end": 459,
+          "line_start": 452,
+          "name": "_get_full_tool_schemas",
+          "returns": "List[Dict[str, Any]]",
+          "source_code": "    def _get_full_tool_schemas(self) -> List[Dict[str, Any]]:\n        return list(self._external_tool_schemas.values()) + [\n            func_tool.get_openai_tool_schema()\n            for func_tool in self._internal_tools.values()\n        ]"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns a set of external tool names.",
+          "line_end": 463,
+          "line_start": 461,
+          "name": "_get_external_tool_names",
+          "returns": "Set[str]",
+          "source_code": "    def _get_external_tool_names(self) -> Set[str]:\n        return set(self._external_tool_schemas.keys())"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Union[FunctionTool, Callable]",
+              "default": null,
+              "name": "tool"
+            }
+          ],
+          "docstring": "Add a tool to the agent.",
+          "line_end": 468,
+          "line_start": 465,
+          "name": "add_tool",
+          "returns": "None",
+          "source_code": "    def add_tool(self, tool: Union[FunctionTool, Callable]) -> None:\n        new_tool = convert_to_function_tool(tool)\n        self._internal_tools[new_tool.get_function_name()] = new_tool"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[Union[FunctionTool, Callable]]",
+              "default": null,
+              "name": "tools"
+            }
+          ],
+          "docstring": "Add a list of tools to the agent.",
+          "line_end": 473,
+          "line_start": 470,
+          "name": "add_tools",
+          "returns": "None",
+          "source_code": "    def add_tools(self, tools: List[Union[FunctionTool, Callable]]) -> None:\n        for tool in tools:\n            self.add_tool(tool)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Union[FunctionTool, Callable, Dict[str, Any]]",
+              "default": null,
+              "name": "tool"
+            }
+          ],
+          "docstring": null,
+          "line_end": 479,
+          "line_start": 475,
+          "name": "add_external_tool",
+          "returns": "None",
+          "source_code": "    def add_external_tool(\n        self, tool: Union[FunctionTool, Callable, Dict[str, Any]]\n    ) -> None:\n        new_tool_schema = convert_to_schema(tool)\n        self._external_tool_schemas[new_tool_schema[\"name\"]] = new_tool_schema"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "tool_name"
+            }
+          ],
+          "docstring": "Remove a tool from the agent by name.\n\nArgs:\n    tool_name (str): The name of the tool to remove.\n\nReturns:\n    bool: Whether the tool was successfully removed.",
+          "line_end": 493,
+          "line_start": 481,
+          "name": "remove_tool",
+          "returns": "bool",
+          "source_code": "    def remove_tool(self, tool_name: str) -> bool:\n        if tool_name in self._internal_tools:\n            del self._internal_tools[tool_name]\n            return True\n        return False"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[str]",
+              "default": null,
+              "name": "tool_names"
+            }
+          ],
+          "docstring": "Remove a list of tools from the agent by name.",
+          "line_end": 498,
+          "line_start": 495,
+          "name": "remove_tools",
+          "returns": "None",
+          "source_code": "    def remove_tools(self, tool_names: List[str]) -> None:\n        for tool_name in tool_names:\n            self.remove_tool(tool_name)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "tool_name"
+            }
+          ],
+          "docstring": "Remove an external tool from the agent by name.\n\nArgs:\n    tool_name (str): The name of the tool to remove.\n\nReturns:\n    bool: Whether the tool was successfully removed.",
+          "line_end": 512,
+          "line_start": 500,
+          "name": "remove_external_tool",
+          "returns": "bool",
+          "source_code": "    def remove_external_tool(self, tool_name: str) -> bool:\n        if tool_name in self._external_tool_schemas:\n            del self._external_tool_schemas[tool_name]\n            return True\n        return False"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "BaseMessage",
+              "default": null,
+              "name": "message"
+            },
+            {
+              "annotation": "OpenAIBackendRole",
+              "default": null,
+              "name": "role"
+            },
+            {
+              "annotation": "Optional[float]",
+              "default": "None",
+              "name": "timestamp"
+            }
+          ],
+          "docstring": "Updates the agent memory with a new message.\n\nIf the single *message* exceeds the model's context window, it will\nbe **automatically split into multiple smaller chunks** before being\nwritten into memory. This prevents later failures in\n`ScoreBasedContextCreator` where an over-sized message cannot fit\ninto the available token budget at all.\n\nThis slicing logic handles both regular text messages (in the\n`content` field) and long tool call results (in the `result` field of\na `FunctionCallingMessage`).\n\nArgs:\n    message (BaseMessage): The new message to add to the stored\n        messages.\n    role (OpenAIBackendRole): The backend role type.\n    timestamp (Optional[float], optional): Custom timestamp for the\n        memory record. If `None`, the current time will be used.\n        (default: :obj:`None`)\n            (default: obj:`None`)",
+          "line_end": 686,
+          "line_start": 514,
+          "name": "update_memory",
+          "returns": "None",
+          "source_code": "    def update_memory(\n        self,\n        message: BaseMessage,\n        role: OpenAIBackendRole,\n        timestamp: Optional[float] = None,\n    ) -> None:\n        import math\n        import time\n        import uuid as _uuid\n\n        # 1. Helper to write a record to memory\n        def _write_single_record(\n            message: BaseMessage, role: OpenAIBackendRole, timestamp: float\n        ):\n            self.memory.write_record(\n                MemoryRecord(\n                    message=message,\n                    role_at_backend=role,\n                    timestamp=timestamp,\n                    agent_id=self.agent_id,\n                )\n            )\n\n        base_ts = (\n            timestamp\n            if timestamp is not None\n            else time.time_ns() / 1_000_000_000\n        )\n\n        # 2. Get token handling utilities, fallback if unavailable\n        try:\n            context_creator = self.memory.get_context_creator()\n            token_counter = context_creator.token_counter\n            token_limit = context_creator.token_limit\n        except AttributeError:\n            _write_single_record(message, role, base_ts)\n            return\n\n        # 3. Check if slicing is necessary\n        try:\n            current_tokens = token_counter.count_tokens_from_messages(\n                [message.to_openai_message(role)]\n            )\n            _, ctx_tokens = self.memory.get_context()\n            remaining_budget = max(0, token_limit - ctx_tokens)\n\n            if current_tokens <= remaining_budget:\n                _write_single_record(message, role, base_ts)\n                return\n        except Exception as e:\n            logger.warning(\n                f\"Token calculation failed before chunking, \"\n                f\"writing message as-is. Error: {e}\"\n            )\n            _write_single_record(message, role, base_ts)\n            return\n\n        # 4. Perform slicing\n        logger.warning(\n            f\"Message with {current_tokens} tokens exceeds remaining budget \"\n            f\"of {remaining_budget}. Slicing into smaller chunks.\"\n        )\n\n        text_to_chunk: Optional[str] = None\n        is_function_result = False\n\n        if isinstance(message, FunctionCallingMessage) and isinstance(\n            message.result, str\n        ):\n            text_to_chunk = message.result\n            is_function_result = True\n        elif isinstance(message.content, str):\n            text_to_chunk = message.content\n\n        if not text_to_chunk or not text_to_chunk.strip():\n            _write_single_record(message, role, base_ts)\n            return\n        # Encode the entire text to get a list of all token IDs\n        try:\n            all_token_ids = token_counter.encode(text_to_chunk)\n        except Exception as e:\n            logger.error(f\"Failed to encode text for chunking: {e}\")\n            _write_single_record(message, role, base_ts)  # Fallback\n            return\n\n        if not all_token_ids:\n            _write_single_record(message, role, base_ts)  # Nothing to chunk\n            return\n\n        # 1.  Base chunk size: one-tenth of the smaller of (a) total token\n        # limit and (b) current remaining budget.  This prevents us from\n        # creating chunks that are guaranteed to overflow the\n        # immediate context window.\n        base_chunk_size = max(1, remaining_budget) // 10\n\n        # 2.  Each chunk gets a textual prefix such as:\n        #        \"[chunk 3/12 of a long message]\\n\"\n        #     The prefix itself consumes tokens, so if we do not subtract its\n        #     length the *total* tokens of the outgoing message (prefix + body)\n        #     can exceed the intended bound.  We estimate the prefix length\n        #     with a representative example that is safely long enough for the\n        #     vast majority of cases (three-digit indices).\n        sample_prefix = \"[chunk 1/1000 of a long message]\\n\"\n        prefix_token_len = len(token_counter.encode(sample_prefix))\n\n        # 3.  The real capacity for the message body is therefore the base\n        #     chunk size minus the prefix length.  Fallback to at least one\n        #     token to avoid zero or negative sizes.\n        chunk_body_limit = max(1, base_chunk_size - prefix_token_len)\n\n        # 4.  Calculate how many chunks we will need with this body size.\n        num_chunks = math.ceil(len(all_token_ids) / chunk_body_limit)\n        group_id = str(_uuid.uuid4())\n\n        for i in range(num_chunks):\n            start_idx = i * chunk_body_limit\n            end_idx = start_idx + chunk_body_limit\n            chunk_token_ids = all_token_ids[start_idx:end_idx]\n\n            chunk_body = token_counter.decode(chunk_token_ids)\n\n            prefix = f\"[chunk {i + 1}/{num_chunks} of a long message]\\n\"\n            new_body = prefix + chunk_body\n\n            if is_function_result and isinstance(\n                message, FunctionCallingMessage\n            ):\n                new_msg: BaseMessage = FunctionCallingMessage(\n                    role_name=message.role_name,\n                    role_type=message.role_type,\n                    meta_dict=message.meta_dict,\n                    content=message.content,\n                    func_name=message.func_name,\n                    args=message.args,\n                    result=new_body,\n                    tool_call_id=message.tool_call_id,\n                )\n            else:\n                new_msg = message.create_new_instance(new_body)\n\n            meta = (new_msg.meta_dict or {}).copy()\n            meta.update(\n                {\n                    \"chunk_idx\": i + 1,\n                    \"chunk_total\": num_chunks,\n                    \"chunk_group_id\": group_id,\n                }\n            )\n            new_msg.meta_dict = meta\n\n            # Increment timestamp slightly to maintain order\n            _write_single_record(new_msg, role, base_ts + i * 1e-6)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "AgentMemory",
+              "default": null,
+              "name": "memory"
+            }
+          ],
+          "docstring": "Load the provided memory into the agent.\n\nArgs:\n    memory (AgentMemory): The memory to load into the agent.\n\nReturns:\n    None",
+          "line_end": 700,
+          "line_start": 688,
+          "name": "load_memory",
+          "returns": "None",
+          "source_code": "    def load_memory(self, memory: AgentMemory) -> None:\n\n        for context_record in memory.retrieve():\n            self.memory.write_record(context_record.memory_record)\n        logger.info(f\"Memory loaded from {memory}\")"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "path"
+            }
+          ],
+          "docstring": "Loads memory records from a JSON file filtered by this agent's ID.\n\nArgs:\n    path (str): The file path to a JSON memory file that uses\n        JsonStorage.\n\nRaises:\n    ValueError: If no matching records for the agent_id are found\n        (optional check; commented out below).",
+          "line_end": 750,
+          "line_start": 702,
+          "name": "load_memory_from_path",
+          "returns": "None",
+          "source_code": "    def load_memory_from_path(self, path: str) -> None:\n        json_store = JsonStorage(Path(path))\n        all_records = json_store.load()\n\n        if not all_records:\n            raise ValueError(\n                f\"No records found for agent_id={self.agent_id} in {path}\"\n            )\n\n        for record_dict in all_records:\n            # Validate the record dictionary before conversion\n            required_keys = ['message', 'role_at_backend', 'agent_id']\n            if not all(key in record_dict for key in required_keys):\n                logger.warning(\n                    f\"Skipping invalid record: missing required \"\n                    f\"keys in {record_dict}\"\n                )\n                continue\n\n            # Validate message structure in the record\n            if (\n                not isinstance(record_dict['message'], dict)\n                or '__class__' not in record_dict['message']\n            ):\n                logger.warning(\n                    f\"Skipping invalid record: malformed message \"\n                    f\"structure in {record_dict}\"\n                )\n                continue\n\n            try:\n                record = MemoryRecord.from_dict(record_dict)\n                self.memory.write_records([record])\n            except Exception as e:\n                logger.warning(\n                    f\"Error converting record to MemoryRecord: {e}. \"\n                    f\"Record: {record_dict}\"\n                )\n        logger.info(f\"Memory loaded from {path}\")"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "path"
+            }
+          ],
+          "docstring": "Retrieves the current conversation data from memory and writes it\ninto a JSON file using JsonStorage.\n\nArgs:\n    path (str): Target file path to store JSON data.",
+          "line_end": 763,
+          "line_start": 752,
+          "name": "save_memory",
+          "returns": "None",
+          "source_code": "    def save_memory(self, path: str) -> None:\n        json_store = JsonStorage(Path(path))\n        context_records = self.memory.retrieve()\n        to_save = [cr.memory_record.to_dict() for cr in context_records]\n        json_store.save(to_save)\n        logger.info(f\"Memory saved to {path}\")"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Clear the agent's memory and reset to initial state.\n\nReturns:\n    None",
+          "line_end": 773,
+          "line_start": 765,
+          "name": "clear_memory",
+          "returns": "None",
+          "source_code": "    def clear_memory(self) -> None:\n        self.memory.clear()\n        if self.system_message is not None:\n            self.update_memory(self.system_message, OpenAIBackendRole.SYSTEM)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Generate a new system message with the output language prompt.\n\nThe output language determines the language in which the output text\nshould be generated.\n\nReturns:\n    BaseMessage: The new system message.",
+          "line_end": 801,
+          "line_start": 775,
+          "name": "_generate_system_message_for_output_language",
+          "returns": "Optional[BaseMessage]",
+          "source_code": "    def _generate_system_message_for_output_language(\n        self,\n    ) -> Optional[BaseMessage]:\n        if not self._output_language:\n            return self._original_system_message\n\n        language_prompt = (\n            \"\\nRegardless of the input language, \"\n            f\"you must output text in {self._output_language}.\"\n        )\n\n        if self._original_system_message is not None:\n            content = self._original_system_message.content + language_prompt\n            return self._original_system_message.create_new_instance(content)\n        else:\n            return BaseMessage.make_assistant_message(\n                role_name=\"Assistant\",\n                content=language_prompt,\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Initializes the stored messages list with the current system\nmessage.",
+          "line_end": 819,
+          "line_start": 803,
+          "name": "init_messages",
+          "returns": "None",
+          "source_code": "    def init_messages(self) -> None:\n        import time\n\n        self.memory.clear()\n        # avoid UserWarning: The `ChatHistoryMemory` is empty.\n        if self.system_message is not None:\n            self.memory.write_record(\n                MemoryRecord(\n                    message=self.system_message,\n                    role_at_backend=OpenAIBackendRole.SYSTEM,\n                    timestamp=time.time_ns() / 1_000_000_000,\n                    agent_id=self.agent_id,\n                )\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "BaseMessage",
+              "default": null,
+              "name": "message"
+            }
+          ],
+          "docstring": "Records the externally provided message into the agent memory as if\nit were an answer of the :obj:`ChatAgent` from the backend. Currently,\nthe choice of the critic is submitted with this method.\n\nArgs:\n    message (BaseMessage): An external message to be recorded in the\n        memory.",
+          "line_end": 830,
+          "line_start": 821,
+          "name": "record_message",
+          "returns": "None",
+          "source_code": "    def record_message(self, message: BaseMessage) -> None:\n        self.update_memory(message, OpenAIBackendRole.ASSISTANT)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "BaseMessage",
+              "default": null,
+              "name": "message"
+            },
+            {
+              "annotation": "Type[BaseModel]",
+              "default": null,
+              "name": "response_format"
+            }
+          ],
+          "docstring": "Try to format the message if needed.\n\nReturns:\n    bool: Whether the message is formatted successfully (or no format\n        is needed).",
+          "line_end": 850,
+          "line_start": 832,
+          "name": "_try_format_message",
+          "returns": "bool",
+          "source_code": "    def _try_format_message(\n        self, message: BaseMessage, response_format: Type[BaseModel]\n    ) -> bool:\n        if message.parsed:\n            return True\n\n        try:\n            message.parsed = response_format.model_validate_json(\n                message.content\n            )\n            return True\n        except ValidationError:\n            return False"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Check if all tools are compatible with OpenAI strict mode.\n\nReturns:\n    bool: True if all tools are strict mode compatible,\n        False otherwise.",
+          "line_end": 863,
+          "line_start": 852,
+          "name": "_check_tools_strict_compatibility",
+          "returns": "bool",
+          "source_code": "    def _check_tools_strict_compatibility(self) -> bool:\n        tool_schemas = self._get_full_tool_schemas()\n        for schema in tool_schemas:\n            if not schema.get(\"function\", {}).get(\"strict\", True):\n                return False\n        return True"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Type[BaseModel]",
+              "default": null,
+              "name": "response_format"
+            }
+          ],
+          "docstring": "Convert a Pydantic response format to a prompt instruction.\n\nArgs:\n    response_format (Type[BaseModel]): The Pydantic model class.\n\nReturns:\n    str: A prompt instruction requesting the specific format.",
+          "line_end": 922,
+          "line_start": 865,
+          "name": "_convert_response_format_to_prompt",
+          "returns": "str",
+          "source_code": "    def _convert_response_format_to_prompt(\n        self, response_format: Type[BaseModel]\n    ) -> str:\n        try:\n            # Get the JSON schema from the Pydantic model\n            schema = response_format.model_json_schema()\n\n            # Create a prompt based on the schema\n            format_instruction = (\n                \"\\n\\nPlease respond in the following JSON format:\\n\" \"{\\n\"\n            )\n\n            properties = schema.get(\"properties\", {})\n            for field_name, field_info in properties.items():\n                field_type = field_info.get(\"type\", \"string\")\n                description = field_info.get(\"description\", \"\")\n\n                if field_type == \"array\":\n                    format_instruction += (\n                        f'    \"{field_name}\": [\"array of values\"]'\n                    )\n                elif field_type == \"object\":\n                    format_instruction += f'    \"{field_name}\": {{\"object\"}}'\n                elif field_type == \"boolean\":\n                    format_instruction += f'    \"{field_name}\": true'\n                elif field_type == \"number\":\n                    format_instruction += f'    \"{field_name}\": 0'\n                else:\n                    format_instruction += f'    \"{field_name}\": \"string value\"'\n\n                if description:\n                    format_instruction += f'  // {description}'\n\n                # Add comma if not the last item\n                if field_name != list(properties.keys())[-1]:\n                    format_instruction += \",\"\n                format_instruction += \"\\n\"\n\n            format_instruction += \"}\"\n            return format_instruction\n\n        except Exception as e:\n            logger.warning(\n                f\"Failed to convert response_format to prompt: {e}. \"\n                f\"Using generic format instruction.\"\n            )\n            return (\n                \"\\n\\nPlease respond in a structured JSON format \"\n                \"that matches the requested schema.\"\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Union[BaseMessage, str]",
+              "default": null,
+              "name": "input_message"
+            },
+            {
+              "annotation": "Optional[Type[BaseModel]]",
+              "default": "None",
+              "name": "response_format"
+            }
+          ],
+          "docstring": "Handle response format when tools are not strict mode compatible.\n\nArgs:\n    input_message: The original input message.\n    response_format: The requested response format.\n\nReturns:\n    Tuple: (modified_message, modified_response_format,\n           used_prompt_formatting)",
+          "line_end": 967,
+          "line_start": 924,
+          "name": "_handle_response_format_with_non_strict_tools",
+          "returns": "Tuple[Union[BaseMessage, str], Optional[Type[BaseModel]], bool]",
+          "source_code": "    def _handle_response_format_with_non_strict_tools(\n        self,\n        input_message: Union[BaseMessage, str],\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> Tuple[Union[BaseMessage, str], Optional[Type[BaseModel]], bool]:\n        if response_format is None:\n            return input_message, response_format, False\n\n        # Check if tools are strict mode compatible\n        if self._check_tools_strict_compatibility():\n            return input_message, response_format, False\n\n        # Tools are not strict compatible, convert to prompt\n        logger.info(\n            \"Non-strict tools detected. Converting response_format to \"\n            \"prompt-based formatting.\"\n        )\n\n        format_prompt = self._convert_response_format_to_prompt(\n            response_format\n        )\n\n        # Modify the message to include format instruction\n        modified_message: Union[BaseMessage, str]\n        if isinstance(input_message, str):\n            modified_message = input_message + format_prompt\n        else:\n            modified_message = input_message.create_new_instance(\n                input_message.content + format_prompt\n            )\n\n        # Return None for response_format to avoid strict mode conflicts\n        # and True to indicate we used prompt formatting\n        return modified_message, None, True"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ModelResponse",
+              "default": null,
+              "name": "response"
+            },
+            {
+              "annotation": "Type[BaseModel]",
+              "default": null,
+              "name": "original_response_format"
+            }
+          ],
+          "docstring": "Apply manual parsing when using prompt-based formatting.\n\nArgs:\n    response: The model response to parse.\n    original_response_format: The original response format class.",
+          "line_end": 1029,
+          "line_start": 969,
+          "name": "_apply_prompt_based_parsing",
+          "returns": "None",
+          "source_code": "    def _apply_prompt_based_parsing(\n        self,\n        response: ModelResponse,\n        original_response_format: Type[BaseModel],\n    ) -> None:\n        for message in response.output_messages:\n            if message.content:\n                try:\n                    # Try to extract JSON from the response content\n                    import json\n                    import re\n\n                    from pydantic import ValidationError\n\n                    # Try to find JSON in the content\n                    content = message.content.strip()\n\n                    # Try direct parsing first\n                    try:\n                        parsed_json = json.loads(content)\n                        message.parsed = (\n                            original_response_format.model_validate(\n                                parsed_json\n                            )\n                        )\n                        continue\n                    except (json.JSONDecodeError, ValidationError):\n                        pass\n\n                    # Try to extract JSON from text\n                    json_pattern = r'\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}'\n                    json_matches = re.findall(json_pattern, content, re.DOTALL)\n\n                    for json_str in json_matches:\n                        try:\n                            parsed_json = json.loads(json_str)\n                            message.parsed = (\n                                original_response_format.model_validate(\n                                    parsed_json\n                                )\n                            )\n                            # Update content to just the JSON for consistency\n                            message.content = json.dumps(parsed_json)\n                            break\n                        except (json.JSONDecodeError, ValidationError):\n                            continue\n\n                    if not message.parsed:\n                        logger.warning(\n                            f\"Failed to parse JSON from response: \"\n                            f\"{content[:100]}...\"\n                        )\n\n                except Exception as e:\n                    logger.warning(f\"Error during prompt-based parsing: {e}\")"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ModelResponse",
+              "default": null,
+              "name": "response"
+            },
+            {
+              "annotation": "Optional[Type[BaseModel]]",
+              "default": "None",
+              "name": "response_format"
+            }
+          ],
+          "docstring": "Format the response if needed.\n\nThis function won't format the response under the following cases:\n1. The response format is None (not provided)\n2. The response is empty",
+          "line_end": 1061,
+          "line_start": 1031,
+          "name": "_format_response_if_needed",
+          "returns": "None",
+          "source_code": "    def _format_response_if_needed(\n        self,\n        response: ModelResponse,\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> None:\n        if response_format is None:\n            return\n\n        for message in response.output_messages:\n            if self._try_format_message(message, response_format):\n                continue\n\n            prompt = SIMPLE_FORMAT_PROMPT.format(content=message.content)\n            openai_message: OpenAIMessage = {\"role\": \"user\", \"content\": prompt}\n            # Explicitly set the tools to empty list to avoid calling tools\n            response = self._get_model_response(\n                [openai_message], 0, response_format, []\n            )\n            message.content = response.output_messages[0].content\n            if not self._try_format_message(message, response_format):\n                logger.warning(f\"Failed to parse response: {message.content}\")\n                logger.warning(\n                    \"To improve reliability, consider using models \"\n                    \"that are better equipped to handle structured output\"\n                )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Union[BaseMessage, str]",
+              "default": null,
+              "name": "input_message"
+            },
+            {
+              "annotation": "Optional[Type[BaseModel]]",
+              "default": "None",
+              "name": "response_format"
+            }
+          ],
+          "docstring": "Executes a single step in the chat session, generating a response\nto the input message.\n\nArgs:\n    input_message (Union[BaseMessage, str]): The input message for the\n        agent. If provided as a BaseMessage, the `role` is adjusted to\n        `user` to indicate an external message.\n    response_format (Optional[Type[BaseModel]], optional): A Pydantic\n        model defining the expected structure of the response. Used to\n        generate a structured response if provided. (default:\n        :obj:`None`)\n\nReturns:\n    ChatAgentResponse: Contains output messages, a termination status\n        flag, and session information.",
+          "line_end": 1224,
+          "line_start": 1087,
+          "name": "step",
+          "returns": "ChatAgentResponse",
+          "source_code": "    def step(\n        self,\n        input_message: Union[BaseMessage, str],\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> ChatAgentResponse:\n\n        # Set Langfuse session_id using agent_id for trace grouping\n        try:\n            from camel.utils.langfuse import set_current_agent_session_id\n\n            set_current_agent_session_id(self.agent_id)\n        except ImportError:\n            pass  # Langfuse not available\n\n        # Handle response format compatibility with non-strict tools\n        original_response_format = response_format\n        input_message, response_format, used_prompt_formatting = (\n            self._handle_response_format_with_non_strict_tools(\n                input_message, response_format\n            )\n        )\n\n        # Convert input message to BaseMessage if necessary\n        if isinstance(input_message, str):\n            input_message = BaseMessage.make_user_message(\n                role_name=\"User\", content=input_message\n            )\n\n        # Add user input to memory\n        self.update_memory(input_message, OpenAIBackendRole.USER)\n\n        tool_call_records: List[ToolCallingRecord] = []\n        external_tool_call_requests: Optional[List[ToolCallRequest]] = None\n\n        accumulated_context_tokens = (\n            0  # This tracks cumulative context tokens, not API usage tokens\n        )\n\n        # Initialize token usage tracker\n        step_token_usage = self._create_token_usage_tracker()\n        iteration_count = 0\n\n        while True:\n            try:\n                openai_messages, num_tokens = self.memory.get_context()\n                accumulated_context_tokens += num_tokens\n            except RuntimeError as e:\n                return self._step_terminate(\n                    e.args[1], tool_call_records, \"max_tokens_exceeded\"\n                )\n            # Get response from model backend\n            response = self._get_model_response(\n                openai_messages,\n                accumulated_context_tokens,  # Cumulative context tokens\n                response_format,\n                self._get_full_tool_schemas(),\n            )\n            iteration_count += 1\n\n            # Accumulate API token usage\n            self._update_token_usage_tracker(\n                step_token_usage, response.usage_dict\n            )\n\n            # Terminate Agent if stop_event is set\n            if self.stop_event and self.stop_event.is_set():\n                # Use the _step_terminate to terminate the agent with reason\n                return self._step_terminate(\n                    accumulated_context_tokens,\n                    tool_call_records,\n                    \"termination_triggered\",\n                )\n\n            if tool_call_requests := response.tool_call_requests:\n                # Process all tool calls\n                for tool_call_request in tool_call_requests:\n                    if (\n                        tool_call_request.tool_name\n                        in self._external_tool_schemas\n                    ):\n                        if external_tool_call_requests is None:\n                            external_tool_call_requests = []\n                        external_tool_call_requests.append(tool_call_request)\n                    else:\n                        tool_call_records.append(\n                            self._execute_tool(tool_call_request)\n                        )\n\n                # If we found external tool calls, break the loop\n                if external_tool_call_requests:\n                    break\n\n                if (\n                    self.max_iteration is not None\n                    and iteration_count >= self.max_iteration\n                ):\n                    break\n\n                # If we're still here, continue the loop\n                continue\n\n            break\n\n        self._format_response_if_needed(response, response_format)\n\n        # Apply manual parsing if we used prompt-based formatting\n        if used_prompt_formatting and original_response_format:\n            self._apply_prompt_based_parsing(\n                response, original_response_format\n            )\n\n        self._record_final_output(response.output_messages)\n\n        return self._convert_to_chatagent_response(\n            response,\n            tool_call_records,\n            accumulated_context_tokens,\n            external_tool_call_requests,\n            step_token_usage[\"prompt_tokens\"],\n            step_token_usage[\"completion_tokens\"],\n            step_token_usage[\"total_tokens\"],\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": null,
+          "line_end": 1229,
+          "line_start": 1227,
+          "name": "chat_history",
+          "returns": "List[OpenAIMessage]",
+          "source_code": "    def chat_history(self) -> List[OpenAIMessage]:\n        openai_messages, _ = self.memory.get_context()\n        return openai_messages"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Creates a fresh token usage tracker for a step.\n\nReturns:\n    Dict[str, int]: A dictionary for tracking token usage.",
+          "line_end": 1377,
+          "line_start": 1371,
+          "name": "_create_token_usage_tracker",
+          "returns": "Dict[str, int]",
+          "source_code": "    def _create_token_usage_tracker(self) -> Dict[str, int]:\n        return {\"prompt_tokens\": 0, \"completion_tokens\": 0, \"total_tokens\": 0}"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Dict[str, int]",
+              "default": null,
+              "name": "tracker"
+            },
+            {
+              "annotation": "Dict[str, int]",
+              "default": null,
+              "name": "usage_dict"
+            }
+          ],
+          "docstring": "Updates a token usage tracker with values from a usage dictionary.\n\nArgs:\n    tracker (Dict[str, int]): The token usage tracker to update.\n    usage_dict (Dict[str, int]): The usage dictionary with new values.",
+          "line_end": 1390,
+          "line_start": 1379,
+          "name": "_update_token_usage_tracker",
+          "returns": "None",
+          "source_code": "    def _update_token_usage_tracker(\n        self, tracker: Dict[str, int], usage_dict: Dict[str, int]\n    ) -> None:\n        tracker[\"prompt_tokens\"] += usage_dict.get(\"prompt_tokens\", 0)\n        tracker[\"completion_tokens\"] += usage_dict.get(\"completion_tokens\", 0)\n        tracker[\"total_tokens\"] += usage_dict.get(\"total_tokens\", 0)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ModelResponse",
+              "default": null,
+              "name": "response"
+            },
+            {
+              "annotation": "List[ToolCallingRecord]",
+              "default": null,
+              "name": "tool_call_records"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "num_tokens"
+            },
+            {
+              "annotation": "Optional[List[ToolCallRequest]]",
+              "default": null,
+              "name": "external_tool_call_requests"
+            },
+            {
+              "annotation": "int",
+              "default": "0",
+              "name": "step_api_prompt_tokens"
+            },
+            {
+              "annotation": "int",
+              "default": "0",
+              "name": "step_api_completion_tokens"
+            },
+            {
+              "annotation": "int",
+              "default": "0",
+              "name": "step_api_total_tokens"
+            }
+          ],
+          "docstring": "Parse the final model response into the chat agent response.",
+          "line_end": 1424,
+          "line_start": 1392,
+          "name": "_convert_to_chatagent_response",
+          "returns": "ChatAgentResponse",
+          "source_code": "    def _convert_to_chatagent_response(\n        self,\n        response: ModelResponse,\n        tool_call_records: List[ToolCallingRecord],\n        num_tokens: int,  # Context tokens from the last call in step\n        external_tool_call_requests: Optional[List[ToolCallRequest]],\n        step_api_prompt_tokens: int = 0,\n        step_api_completion_tokens: int = 0,\n        step_api_total_tokens: int = 0,\n    ) -> ChatAgentResponse:\n        # Create usage_dict for the current step's API calls\n        step_api_usage_dict = {\n            \"prompt_tokens\": step_api_prompt_tokens,\n            \"completion_tokens\": step_api_completion_tokens,\n            \"total_tokens\": step_api_total_tokens,\n        }\n\n        info = self._step_get_info(\n            response.output_messages,\n            response.finish_reasons,\n            step_api_usage_dict,  # Pass step-specific API usage here\n            response.response_id,\n            tool_call_records,\n            num_tokens,  # This is context tokens, not API usage\n            external_tool_call_requests,\n        )\n\n        return ChatAgentResponse(\n            msgs=response.output_messages,\n            terminated=self.terminated,\n            info=info,\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[BaseMessage]",
+              "default": null,
+              "name": "output_messages"
+            }
+          ],
+          "docstring": "Log final messages or warnings about multiple responses.",
+          "line_end": 1434,
+          "line_start": 1426,
+          "name": "_record_final_output",
+          "returns": "None",
+          "source_code": "    def _record_final_output(self, output_messages: List[BaseMessage]) -> None:\n        if len(output_messages) == 1:\n            self.record_message(output_messages[0])\n        else:\n            logger.warning(\n                \"Multiple messages returned in `step()`. Record \"\n                \"selected message manually using `record_message()`.\"\n            )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[OpenAIMessage]",
+              "default": null,
+              "name": "openai_messages"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "num_tokens"
+            },
+            {
+              "annotation": "Optional[Type[BaseModel]]",
+              "default": "None",
+              "name": "response_format"
+            },
+            {
+              "annotation": "Optional[List[Dict[str, Any]]]",
+              "default": "None",
+              "name": "tool_schemas"
+            }
+          ],
+          "docstring": "Internal function for agent step model response.",
+          "line_end": 1482,
+          "line_start": 1436,
+          "name": "_get_model_response",
+          "returns": "ModelResponse",
+          "source_code": "    def _get_model_response(\n        self,\n        openai_messages: List[OpenAIMessage],\n        num_tokens: int,\n        response_format: Optional[Type[BaseModel]] = None,\n        tool_schemas: Optional[List[Dict[str, Any]]] = None,\n    ) -> ModelResponse:\n\n        response = None\n        try:\n            response = self.model_backend.run(\n                openai_messages, response_format, tool_schemas or None\n            )\n        except Exception as exc:\n            logger.error(\n                f\"An error occurred while running model \"\n                f\"{self.model_backend.model_type}, \"\n                f\"index: {self.model_backend.current_model_index}\",\n                exc_info=exc,\n            )\n            error_info = str(exc)\n\n        if not response and self.model_backend.num_models > 1:\n            raise ModelProcessingError(\n                \"Unable to process messages: none of the provided models \"\n                \"run successfully.\"\n            )\n        elif not response:\n            raise ModelProcessingError(\n                f\"Unable to process messages: the only provided model \"\n                f\"did not run successfully. Error: {error_info}\"\n            )\n\n        sanitized_messages = self._sanitize_messages_for_logging(\n            openai_messages\n        )\n        logger.info(\n            f\"Model {self.model_backend.model_type}, \"\n            f\"index {self.model_backend.current_model_index}, \"\n            f\"processed these messages: {sanitized_messages}\"\n        )\n\n        if isinstance(response, ChatCompletion):\n            return self._handle_batch_response(response)\n        else:\n            return self._handle_stream_response(response, num_tokens)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": null,
+              "default": null,
+              "name": "messages"
+            }
+          ],
+          "docstring": "Sanitize OpenAI messages for logging by replacing base64 image\ndata with a simple message and a link to view the image.\n\nArgs:\n    messages (List[OpenAIMessage]): The OpenAI messages to sanitize.\n\nReturns:\n    List[OpenAIMessage]: The sanitized OpenAI messages.",
+          "line_end": 1658,
+          "line_start": 1532,
+          "name": "_sanitize_messages_for_logging",
+          "returns": null,
+          "source_code": "    def _sanitize_messages_for_logging(self, messages):\n        import hashlib\n        import os\n        import re\n        import tempfile\n\n        # Create a copy of messages for logging to avoid modifying the\n        # original messages\n        sanitized_messages = []\n        for msg in messages:\n            if isinstance(msg, dict):\n                sanitized_msg = msg.copy()\n                # Check if content is a list (multimodal content with images)\n                if isinstance(sanitized_msg.get('content'), list):\n                    content_list = []\n                    for item in sanitized_msg['content']:\n                        if (\n                            isinstance(item, dict)\n                            and item.get('type') == 'image_url'\n                        ):\n                            # Handle image URL\n                            image_url = item.get('image_url', {}).get(\n                                'url', ''\n                            )\n                            if image_url and image_url.startswith(\n                                'data:image'\n                            ):\n                                # Extract image data and format\n                                match = re.match(\n                                    r'data:image/([^;]+);base64,(.+)',\n                                    image_url,\n                                )\n                                if match:\n                                    img_format, base64_data = match.groups()\n\n                                    # Create a hash of the image data to use\n                                    # as filename\n                                    img_hash = hashlib.md5(\n                                        base64_data[:100].encode()\n                                    ).hexdigest()[:10]\n                                    img_filename = (\n                                        f\"image_{img_hash}.{img_format}\"\n                                    )\n\n                                    # Save image to temp directory for viewing\n                                    try:\n                                        import base64\n\n                                        temp_dir = tempfile.gettempdir()\n                                        img_path = os.path.join(\n                                            temp_dir, img_filename\n                                        )\n\n                                        # Only save if file doesn't exist\n                                        if not os.path.exists(img_path):\n                                            with open(img_path, 'wb') as f:\n                                                f.write(\n                                                    base64.b64decode(\n                                                        base64_data\n                                                    )\n                                                )\n\n                                        # Create a file:// URL that can be\n                                        # opened\n                                        file_url = f\"file://{img_path}\"\n\n                                        content_list.append(\n                                            {\n                                                'type': 'image_url',\n                                                'image_url': {\n                                                    'url': f'{file_url}',\n                                                    'detail': item.get(\n                                                        'image_url', {}\n                                                    ).get('detail', 'auto'),\n                                                },\n                                            }\n                                        )\n                                    except Exception as e:\n                                        # If saving fails, fall back to simple\n                                        # message\n                                        content_list.append(\n                                            {\n                                                'type': 'image_url',\n                                                'image_url': {\n                                                    'url': '[base64 '\n                                                    + 'image - error saving: '\n                                                    + str(e)\n                                                    + ']',\n                                                    'detail': item.get(\n                                                        'image_url', {}\n                                                    ).get('detail', 'auto'),\n                                                },\n                                            }\n                                        )\n                                else:\n                                    # If regex fails, fall back to simple\n                                    # message\n                                    content_list.append(\n                                        {\n                                            'type': 'image_url',\n                                            'image_url': {\n                                                'url': '[base64 '\n                                                + 'image - invalid format]',\n                                                'detail': item.get(\n                                                    'image_url', {}\n                                                ).get('detail', 'auto'),\n                                            },\n                                        }\n                                    )\n                            else:\n                                content_list.append(item)\n                        else:\n                            content_list.append(item)\n                    sanitized_msg['content'] = content_list\n                sanitized_messages.append(sanitized_msg)\n            else:\n                sanitized_messages.append(msg)\n        return sanitized_messages"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[BaseMessage]",
+              "default": null,
+              "name": "output_messages"
+            },
+            {
+              "annotation": "List[str]",
+              "default": null,
+              "name": "finish_reasons"
+            },
+            {
+              "annotation": "Dict[str, int]",
+              "default": null,
+              "name": "usage_dict"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "response_id"
+            },
+            {
+              "annotation": "List[ToolCallingRecord]",
+              "default": null,
+              "name": "tool_calls"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "num_tokens"
+            },
+            {
+              "annotation": "Optional[List[ToolCallRequest]]",
+              "default": "None",
+              "name": "external_tool_call_requests"
+            }
+          ],
+          "docstring": "Process the output of a chat step and gather information about the\nstep.\n\nThis method checks for termination conditions, updates the agent's\nstate, and collects information about the chat step, including tool\ncalls and termination reasons.\n\nArgs:\n    output_messages (List[BaseMessage]): The messages generated in\n        this step.\n    finish_reasons (List[str]): The reasons for finishing the\n        generation for each message.\n    usage_dict (Dict[str, int]): Dictionary containing token usage\n        information.\n    response_id (str): The ID of the response from the model.\n    tool_calls (List[ToolCallingRecord]): Records of function calls\n        made during this step.\n    num_tokens (int): The number of tokens used in this step.\n    external_tool_call_request (Optional[ToolCallRequest]): The\n        request for external tool call.\n\nReturns:\n    Dict[str, Any]: A dictionary containing information about the chat\n        step, including termination status, reasons, and tool call\n        information.\n\nNote:\n    This method iterates over all response terminators and checks if\n    any of them signal termination. If a terminator signals\n    termination, the agent's state is updated accordingly, and the\n    termination reason is recorded.",
+          "line_end": 1726,
+          "line_start": 1660,
+          "name": "_step_get_info",
+          "returns": "Dict[str, Any]",
+          "source_code": "    def _step_get_info(\n        self,\n        output_messages: List[BaseMessage],\n        finish_reasons: List[str],\n        usage_dict: Dict[str, int],\n        response_id: str,\n        tool_calls: List[ToolCallingRecord],\n        num_tokens: int,\n        external_tool_call_requests: Optional[List[ToolCallRequest]] = None,\n    ) -> Dict[str, Any]:\n        termination = [\n            terminator.is_terminated(output_messages)\n            for terminator in self.response_terminators\n        ]\n        # Terminate the agent if any of the terminator terminates\n        self.terminated, termination_reason = next(\n            (\n                (terminated, termination_reason)\n                for terminated, termination_reason in termination\n                if terminated\n            ),\n            (False, None),\n        )\n        # For now only retain the first termination reason\n        if self.terminated and termination_reason is not None:\n            finish_reasons = [termination_reason] * len(finish_reasons)\n\n        return get_info_dict(\n            response_id,\n            usage_dict,\n            finish_reasons,\n            num_tokens,\n            tool_calls,\n            external_tool_call_requests,\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ChatCompletion",
+              "default": null,
+              "name": "response"
+            }
+          ],
+          "docstring": "Process a batch response from the model and extract the necessary\ninformation.\n\nArgs:\n    response (ChatCompletion): Model response.\n\nReturns:\n    _ModelResponse: parsed model response.",
+          "line_end": 1790,
+          "line_start": 1728,
+          "name": "_handle_batch_response",
+          "returns": "ModelResponse",
+          "source_code": "    def _handle_batch_response(\n        self, response: ChatCompletion\n    ) -> ModelResponse:\n        output_messages: List[BaseMessage] = []\n        for choice in response.choices:\n            # Skip messages with no meaningful content\n            if (\n                choice.message.content is None\n                or choice.message.content.strip() == \"\"\n            ) and not choice.message.tool_calls:\n                continue\n\n            meta_dict = {}\n            if logprobs_info := handle_logprobs(choice):\n                meta_dict[\"logprobs_info\"] = logprobs_info\n\n            chat_message = BaseMessage(\n                role_name=self.role_name,\n                role_type=self.role_type,\n                meta_dict=meta_dict,\n                content=choice.message.content or \"\",\n                parsed=getattr(choice.message, \"parsed\", None),\n            )\n\n            output_messages.append(chat_message)\n\n        finish_reasons = [\n            str(choice.finish_reason) for choice in response.choices\n        ]\n\n        usage = {}\n        if response.usage is not None:\n            usage = safe_model_dump(response.usage)\n\n        tool_call_requests: Optional[List[ToolCallRequest]] = None\n        if tool_calls := response.choices[0].message.tool_calls:\n            tool_call_requests = []\n            for tool_call in tool_calls:\n                tool_name = tool_call.function.name\n                tool_call_id = tool_call.id\n                args = json.loads(tool_call.function.arguments)\n                tool_call_request = ToolCallRequest(\n                    tool_name=tool_name, args=args, tool_call_id=tool_call_id\n                )\n                tool_call_requests.append(tool_call_request)\n\n        return ModelResponse(\n            response=response,\n            tool_call_requests=tool_call_requests,\n            output_messages=output_messages,\n            finish_reasons=finish_reasons,\n            usage_dict=usage,\n            response_id=response.id or \"\",\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "Stream[ChatCompletionChunk]",
+              "default": null,
+              "name": "response"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "prompt_tokens"
+            }
+          ],
+          "docstring": "Process a stream response from the model and extract the necessary\ninformation.\n\nArgs:\n    response (dict): Model response.\n    prompt_tokens (int): Number of input prompt tokens.\n\nReturns:\n    _ModelResponse: a parsed model response.",
+          "line_end": 1832,
+          "line_start": 1792,
+          "name": "_handle_stream_response",
+          "returns": "ModelResponse",
+          "source_code": "    def _handle_stream_response(\n        self,\n        response: Stream[ChatCompletionChunk],\n        prompt_tokens: int,\n    ) -> ModelResponse:\n        content_dict: defaultdict = defaultdict(lambda: \"\")\n        finish_reasons_dict: defaultdict = defaultdict(lambda: \"\")\n        output_messages: List[BaseMessage] = []\n        response_id: str = \"\"\n        # All choices in one response share one role\n        for chunk in response:\n            # Some model platforms like siliconflow may return None for the\n            # chunk.id\n            response_id = chunk.id if chunk.id else str(uuid.uuid4())\n            self._handle_chunk(\n                chunk, content_dict, finish_reasons_dict, output_messages\n            )\n        finish_reasons = [\n            finish_reasons_dict[i] for i in range(len(finish_reasons_dict))\n        ]\n        usage_dict = self.get_usage_dict(output_messages, prompt_tokens)\n\n        # TODO: Handle tool calls\n        return ModelResponse(\n            response=response,\n            tool_call_requests=None,\n            output_messages=output_messages,\n            finish_reasons=finish_reasons,\n            usage_dict=usage_dict,\n            response_id=response_id,\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ChatCompletionChunk",
+              "default": null,
+              "name": "chunk"
+            },
+            {
+              "annotation": "defaultdict",
+              "default": null,
+              "name": "content_dict"
+            },
+            {
+              "annotation": "defaultdict",
+              "default": null,
+              "name": "finish_reasons_dict"
+            },
+            {
+              "annotation": "List[BaseMessage]",
+              "default": null,
+              "name": "output_messages"
+            }
+          ],
+          "docstring": "Handle a chunk of the model response.",
+          "line_end": 1900,
+          "line_start": 1876,
+          "name": "_handle_chunk",
+          "returns": "None",
+          "source_code": "    def _handle_chunk(\n        self,\n        chunk: ChatCompletionChunk,\n        content_dict: defaultdict,\n        finish_reasons_dict: defaultdict,\n        output_messages: List[BaseMessage],\n    ) -> None:\n        for choice in chunk.choices:\n            index = choice.index\n            delta = choice.delta\n            if delta.content is not None:\n                content_dict[index] += delta.content\n\n            if not choice.finish_reason:\n                continue\n\n            finish_reasons_dict[index] = choice.finish_reason\n            chat_message = BaseMessage(\n                role_name=self.role_name,\n                role_type=self.role_type,\n                meta_dict=dict(),\n                content=content_dict[index],\n            )\n            output_messages.append(chat_message)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "num_tokens"
+            },
+            {
+              "annotation": "List[ToolCallingRecord]",
+              "default": null,
+              "name": "tool_calls"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "termination_reason"
+            }
+          ],
+          "docstring": "Create a response when the agent execution is terminated.\n\nThis method is called when the agent needs to terminate its execution\ndue to various reasons such as token limit exceeded, or other\ntermination conditions. It creates a response with empty messages but\nincludes termination information in the info dictionary.\n\nArgs:\n    num_tokens (int): Number of tokens in the messages.\n    tool_calls (List[ToolCallingRecord]): List of information\n        objects of functions called in the current step.\n    termination_reason (str): String describing the reason for\n        termination.\n\nReturns:\n    ChatAgentResponse: A response object with empty message list,\n        terminated flag set to True, and an info dictionary containing\n        termination details, token counts, and tool call information.",
+          "line_end": 1941,
+          "line_start": 1902,
+          "name": "_step_terminate",
+          "returns": "ChatAgentResponse",
+          "source_code": "    def _step_terminate(\n        self,\n        num_tokens: int,\n        tool_calls: List[ToolCallingRecord],\n        termination_reason: str,\n    ) -> ChatAgentResponse:\n        self.terminated = True\n\n        info = get_info_dict(\n            None,\n            None,\n            [termination_reason],\n            num_tokens,\n            tool_calls,\n        )\n\n        return ChatAgentResponse(\n            msgs=[],\n            terminated=self.terminated,\n            info=info,\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "ToolCallRequest",
+              "default": null,
+              "name": "tool_call_request"
+            }
+          ],
+          "docstring": "Execute the tool with arguments following the model's response.\n\nArgs:\n    tool_call_request (_ToolCallRequest): The tool call request.\n\nReturns:\n    FunctionCallingRecord: A struct for logging information about this\n        function call.",
+          "line_end": 1968,
+          "line_start": 1943,
+          "name": "_execute_tool",
+          "returns": "ToolCallingRecord",
+          "source_code": "    def _execute_tool(\n        self,\n        tool_call_request: ToolCallRequest,\n    ) -> ToolCallingRecord:\n        func_name = tool_call_request.tool_name\n        args = tool_call_request.args\n        tool_call_id = tool_call_request.tool_call_id\n        tool = self._internal_tools[func_name]\n        try:\n            result = tool(**args)\n        except Exception as e:\n            # Capture the error message to prevent framework crash\n            error_msg = f\"Error executing tool '{func_name}': {e!s}\"\n            result = {\"error\": error_msg}\n            logging.warning(error_msg)\n\n        return self._record_tool_calling(func_name, args, result, tool_call_id)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "func_name"
+            },
+            {
+              "annotation": "Dict[str, Any]",
+              "default": null,
+              "name": "args"
+            },
+            {
+              "annotation": "Any",
+              "default": null,
+              "name": "result"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "tool_call_id"
+            }
+          ],
+          "docstring": "Record the tool calling information in the memory, and return the\ntool calling record.",
+          "line_end": 2069,
+          "line_start": 2012,
+          "name": "_record_tool_calling",
+          "returns": null,
+          "source_code": "    def _record_tool_calling(\n        self,\n        func_name: str,\n        args: Dict[str, Any],\n        result: Any,\n        tool_call_id: str,\n    ):\n        assist_msg = FunctionCallingMessage(\n            role_name=self.role_name,\n            role_type=self.role_type,\n            meta_dict=None,\n            content=\"\",\n            func_name=func_name,\n            args=args,\n            tool_call_id=tool_call_id,\n        )\n        func_msg = FunctionCallingMessage(\n            role_name=self.role_name,\n            role_type=self.role_type,\n            meta_dict=None,\n            content=\"\",\n            func_name=func_name,\n            result=result,\n            tool_call_id=tool_call_id,\n        )\n\n        # Use precise timestamps to ensure correct ordering\n        # This ensures the assistant message (tool call) always appears before\n        # the function message (tool result) in the conversation context\n        # Use time.time_ns() for nanosecond precision to avoid collisions\n        import time\n\n        current_time_ns = time.time_ns()\n        base_timestamp = current_time_ns / 1_000_000_000  # Convert to seconds\n\n        self.update_memory(\n            assist_msg, OpenAIBackendRole.ASSISTANT, timestamp=base_timestamp\n        )\n\n        # Add minimal increment to ensure function message comes after\n        self.update_memory(\n            func_msg,\n            OpenAIBackendRole.FUNCTION,\n            timestamp=base_timestamp + 1e-6,\n        )\n\n        # Record information about this tool call\n        tool_record = ToolCallingRecord(\n            tool_name=func_name,\n            args=args,\n            result=result,\n            tool_call_id=tool_call_id,\n        )\n\n        return tool_record"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "List[BaseMessage]",
+              "default": null,
+              "name": "output_messages"
+            },
+            {
+              "annotation": "int",
+              "default": null,
+              "name": "prompt_tokens"
+            }
+          ],
+          "docstring": "Get usage dictionary when using the stream mode.\n\nArgs:\n    output_messages (list): List of output messages.\n    prompt_tokens (int): Number of input prompt tokens.\n\nReturns:\n    dict: Usage dictionary.",
+          "line_end": 2092,
+          "line_start": 2071,
+          "name": "get_usage_dict",
+          "returns": "Dict[str, int]",
+          "source_code": "    def get_usage_dict(\n        self, output_messages: List[BaseMessage], prompt_tokens: int\n    ) -> Dict[str, int]:\n        encoding = get_model_encoding(self.model_type.value_for_tiktoken)\n        completion_tokens = sum(\n            len(encoding.encode(message.content))\n            for message in output_messages\n        )\n        return dict(\n            completion_tokens=completion_tokens,\n            prompt_tokens=prompt_tokens,\n            total_tokens=completion_tokens + prompt_tokens,\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": null,
+              "name": "name"
+            },
+            {
+              "annotation": "Callable",
+              "default": null,
+              "name": "strategy_fn"
+            }
+          ],
+          "docstring": "Add a scheduling strategy method provided by user to ModelManger.\n\nArgs:\n    name (str): The name of the strategy.\n    strategy_fn (Callable): The scheduling strategy function.",
+          "line_end": 2101,
+          "line_start": 2094,
+          "name": "add_model_scheduling_strategy",
+          "returns": null,
+          "source_code": "    def add_model_scheduling_strategy(self, name: str, strategy_fn: Callable):\n        self.model_backend.add_strategy(name, strategy_fn)"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "bool",
+              "default": "False",
+              "name": "with_memory"
+            }
+          ],
+          "docstring": "Creates a new instance of :obj:`ChatAgent` with the same\nconfiguration as the current instance.\n\nArgs:\n    with_memory (bool): Whether to copy the memory (conversation\n        history) to the new agent. If True, the new agent will have\n        the same conversation history. If False, the new agent will\n        have a fresh memory with only the system message.\n        (default: :obj:`False`)\n\nReturns:\n    ChatAgent: A new instance of :obj:`ChatAgent` with the same\n        configuration.",
+          "line_end": 2153,
+          "line_start": 2103,
+          "name": "clone",
+          "returns": "ChatAgent",
+          "source_code": "    def clone(self, with_memory: bool = False) -> ChatAgent:\n        # Create a new instance with the same configuration\n        # If with_memory is True, set system_message to None\n        # If with_memory is False, use the original system message\n        # To avoid duplicated system memory.\n        system_message = None if with_memory else self._original_system_message\n\n        new_agent = ChatAgent(\n            system_message=system_message,\n            model=self.model_backend.models,  # Pass the existing model_backend\n            memory=None,  # clone memory later\n            message_window_size=getattr(self.memory, \"window_size\", None),\n            token_limit=getattr(\n                self.memory.get_context_creator(), \"token_limit\", None\n            ),\n            output_language=self._output_language,\n            tools=[tool.func for tool in self._internal_tools.values()],\n            external_tools=[\n                schema for schema in self._external_tool_schemas.values()\n            ],\n            response_terminators=self.response_terminators,\n            scheduling_strategy=(\n                self.model_backend.scheduling_strategy.__name__\n            ),\n            max_iteration=self.max_iteration,\n            stop_event=self.stop_event,\n        )\n\n        # Copy memory if requested\n        if with_memory:\n            # Get all records from the current memory\n            context_records = self.memory.retrieve()\n            # Write them to the new agent's memory\n            for context_record in context_records:\n                new_agent.memory.write_record(context_record.memory_record)\n\n        return new_agent"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            }
+          ],
+          "docstring": "Returns a string representation of the :obj:`ChatAgent`.\n\nReturns:\n    str: The string representation of the :obj:`ChatAgent`.",
+          "line_end": 2163,
+          "line_start": 2155,
+          "name": "__repr__",
+          "returns": "str",
+          "source_code": "    def __repr__(self) -> str:\n        return (\n            f\"ChatAgent({self.role_name}, {self.role_type}, {self.model_type})\"\n        )"
+        },
+        {
+          "args": [
+            {
+              "annotation": null,
+              "default": null,
+              "name": "self"
+            },
+            {
+              "annotation": "str",
+              "default": "'CAMEL-ChatAgent'",
+              "name": "name"
+            },
+            {
+              "annotation": "str",
+              "default": "'A helpful assistant using the CAMEL AI framework.'",
+              "name": "description"
+            },
+            {
+              "annotation": "Optional[List[str]]",
+              "default": "None",
+              "name": "dependencies"
+            },
+            {
+              "annotation": "str",
+              "default": "'localhost'",
+              "name": "host"
+            },
+            {
+              "annotation": "int",
+              "default": "8000",
+              "name": "port"
+            }
+          ],
+          "docstring": "Expose this ChatAgent as an MCP server.\n\nArgs:\n    name (str): Name of the MCP server.\n        (default: :obj:`CAMEL-ChatAgent`)\n    description (Optional[List[str]]): Description of the agent. If\n        None, a generic description is used. (default: :obj:`A helpful\n        assistant using the CAMEL AI framework.`)\n    dependencies (Optional[List[str]]): Additional\n        dependencies for the MCP server. (default: :obj:`None`)\n    host (str): Host to bind to for HTTP transport.\n        (default: :obj:`localhost`)\n    port (int): Port to bind to for HTTP transport.\n        (default: :obj:`8000`)\n\nReturns:\n    FastMCP: An MCP server instance that can be run.",
+          "line_end": 2302,
+          "line_start": 2166,
+          "name": "to_mcp",
+          "returns": null,
+          "source_code": "    def to_mcp(\n        self,\n        name: str = \"CAMEL-ChatAgent\",\n        description: str = \"A helpful assistant using the CAMEL AI framework.\",\n        dependencies: Optional[List[str]] = None,\n        host: str = \"localhost\",\n        port: int = 8000,\n    ):\n        from mcp.server.fastmcp import FastMCP\n\n        # Combine dependencies\n        all_dependencies = [\"camel-ai[all]\"]\n        if dependencies:\n            all_dependencies.extend(dependencies)\n\n        mcp_server = FastMCP(\n            name,\n            dependencies=all_dependencies,\n            host=host,\n            port=port,\n        )\n\n        # Store agent reference\n        agent_instance = self\n\n        # Define functions first\n        async def step(message, response_format=None):\n            r\"\"\"Execute a single step in the chat session with the agent.\"\"\"\n            format_cls = None\n            if response_format:\n                format_cls = model_from_json_schema(\n                    \"DynamicResponseFormat\", response_format\n                )\n            response = await agent_instance.astep(message, format_cls)\n            return {\n                \"status\": \"success\",\n                \"messages\": [msg.to_dict() for msg in response.msgs],\n                \"terminated\": response.terminated,\n                \"info\": response.info,\n            }\n\n        # Reset tool\n        def reset():\n            r\"\"\"Reset the chat agent to its initial state.\"\"\"\n            agent_instance.reset()\n            return {\"status\": \"success\", \"message\": \"Agent reset successfully\"}\n\n        # Set language tool\n        def set_output_language(language):\n            r\"\"\"Set the output language for the chat agent.\"\"\"\n            agent_instance.output_language = language\n            return {\n                \"status\": \"success\",\n                \"message\": f\"Output language set to '{language}'\",\n            }\n\n        # Agent info resource and tool\n        def get_agent_info():\n            r\"\"\"Get information about the agent.\"\"\"\n            info = {\n                \"agent_id\": agent_instance.agent_id,\n                \"model_type\": str(agent_instance.model_type),\n                \"role_name\": agent_instance.role_name,\n                \"role_type\": str(agent_instance.role_type),\n                \"output_language\": agent_instance.output_language or \"None\",\n                \"description\": description,\n            }\n            return info\n\n        # Chat history resource and tool\n        def get_chat_history():\n            r\"\"\"Get the chat history for the agent.\"\"\"\n            # Convert messages to simple serializable format\n            messages = []\n            for msg in agent_instance.chat_history:\n                # Create a simplified version of each message\n                msg_dict = {\n                    \"role\": msg.get(\"role\", \"\"),\n                    \"content\": msg.get(\"content\", \"\"),\n                }\n                # Include function calls if present\n                if \"function_call\" in msg:\n                    msg_dict[\"function_call\"] = {\n                        \"name\": msg[\"function_call\"].get(\"name\", \"\"),\n                        \"arguments\": msg[\"function_call\"].get(\"arguments\", \"\"),\n                    }\n                messages.append(msg_dict)\n            return messages\n\n        # Available tools resource and tool\n        def get_available_tools():\n            r\"\"\"Get a list of available internal tools.\"\"\"\n            tool_info = {}\n            for name, tool in agent_instance.tool_dict.items():\n                tool_info[name] = {\n                    \"name\": name,\n                    \"description\": tool.get_function_description() or \"\",\n                    \"parameters\": [\n                        {\"name\": param_name, \"type\": str(param_type)}\n                        for param_name, param_type in tool.parameters.items()\n                    ],\n                }\n            return tool_info\n\n        # Now register everything using decorators\n        mcp_server.tool()(step)\n        mcp_server.tool()(reset)\n        mcp_server.tool()(set_output_language)\n\n        mcp_server.resource(\"agent://\")(get_agent_info)\n        mcp_server.tool()(get_agent_info)\n\n        mcp_server.resource(\"history://\")(get_chat_history)\n        mcp_server.tool()(get_chat_history)\n\n        mcp_server.resource(\"tools://\")(get_available_tools)\n        mcp_server.tool()(get_available_tools)\n\n        return mcp_server"
+        }
+      ],
+      "name": "ChatAgent",
+      "source_code": "class ChatAgent(BaseAgent):\n\n    def __init__(\n        self,\n        system_message: Optional[Union[BaseMessage, str]] = None,\n        model: Optional[\n            Union[\n                BaseModelBackend,\n                ModelManager,\n                Tuple[str, str],\n                str,\n                ModelType,\n                Tuple[ModelPlatformType, ModelType],\n                List[BaseModelBackend],\n                List[str],\n                List[ModelType],\n                List[Tuple[str, str]],\n                List[Tuple[ModelPlatformType, ModelType]],\n            ]\n        ] = None,\n        memory: Optional[AgentMemory] = None,\n        message_window_size: Optional[int] = None,\n        token_limit: Optional[int] = None,\n        output_language: Optional[str] = None,\n        tools: Optional[List[Union[FunctionTool, Callable]]] = None,\n        external_tools: Optional[\n            List[Union[FunctionTool, Callable, Dict[str, Any]]]\n        ] = None,\n        response_terminators: Optional[List[ResponseTerminator]] = None,\n        scheduling_strategy: str = \"round_robin\",\n        max_iteration: Optional[int] = None,\n        agent_id: Optional[str] = None,\n        stop_event: Optional[threading.Event] = None,\n    ) -> None:\n        if isinstance(model, ModelManager):\n            self.model_backend = model\n        else:\n            # Resolve model backends and set up model manager\n            resolved_models = self._resolve_models(model)\n            self.model_backend = ModelManager(\n                resolved_models,\n                scheduling_strategy=scheduling_strategy,\n            )\n        self.model_type = self.model_backend.model_type\n\n        # Assign unique ID\n        self.agent_id = agent_id if agent_id else str(uuid.uuid4())\n\n        # Set up memory\n        context_creator = ScoreBasedContextCreator(\n            self.model_backend.token_counter,\n            token_limit or self.model_backend.token_limit,\n        )\n\n        self.memory: AgentMemory = memory or ChatHistoryMemory(\n            context_creator,\n            window_size=message_window_size,\n            agent_id=self.agent_id,\n        )\n\n        # So we don't have to pass agent_id when we define memory\n        if memory is not None:\n            memory.agent_id = self.agent_id\n\n        # Set up system message and initialize messages\n        self._original_system_message = (\n            BaseMessage.make_assistant_message(\n                role_name=\"Assistant\", content=system_message\n            )\n            if isinstance(system_message, str)\n            else system_message\n        )\n        self._output_language = output_language\n        self._system_message = (\n            self._generate_system_message_for_output_language()\n        )\n        self.init_messages()\n\n        # Set up role name and role type\n        self.role_name: str = (\n            getattr(self.system_message, \"role_name\", None) or \"assistant\"\n        )\n        self.role_type: RoleType = (\n            getattr(self.system_message, \"role_type\", None)\n            or RoleType.ASSISTANT\n        )\n\n        # Set up tools\n        self._internal_tools = {\n            tool.get_function_name(): tool\n            for tool in [\n                convert_to_function_tool(tool) for tool in (tools or [])\n            ]\n        }\n\n        self._external_tool_schemas = {\n            tool_schema[\"function\"][\"name\"]: tool_schema\n            for tool_schema in [\n                convert_to_schema(tool) for tool in (external_tools or [])\n            ]\n        }\n\n        # Set up other properties\n        self.terminated = False\n        self.response_terminators = response_terminators or []\n        self.max_iteration = max_iteration\n        self.stop_event = stop_event\n\n    def reset(self):\n        r\"\"\"Resets the :obj:`ChatAgent` to its initial state.\"\"\"\n        self.terminated = False\n        self.init_messages()\n        for terminator in self.response_terminators:\n            terminator.reset()\n\n    def _resolve_models(\n        self,\n        model: Optional[\n            Union[\n                BaseModelBackend,\n                Tuple[str, str],\n                str,\n                ModelType,\n                Tuple[ModelPlatformType, ModelType],\n                List[BaseModelBackend],\n                List[str],\n                List[ModelType],\n                List[Tuple[str, str]],\n                List[Tuple[ModelPlatformType, ModelType]],\n            ]\n        ],\n    ) -> Union[BaseModelBackend, List[BaseModelBackend]]:\n        r\"\"\"Resolves model specifications into model backend instances.\n\n        This method handles various input formats for model specifications and\n        returns the appropriate model backend(s).\n\n        Args:\n            model: Model specification in various formats including single\n                model, list of models, or model type specifications.\n\n        Returns:\n            Union[BaseModelBackend, List[BaseModelBackend]]: Resolved model\n                backend(s).\n\n        Raises:\n            TypeError: If the model specification format is not supported.\n        \"\"\"\n        if model is None:\n            # Default single model if none provided\n            return ModelFactory.create(\n                model_platform=ModelPlatformType.DEFAULT,\n                model_type=ModelType.DEFAULT,\n            )\n        elif isinstance(model, BaseModelBackend):\n            # Already a single pre-instantiated model\n            return model\n        elif isinstance(model, list):\n            return self._resolve_model_list(model)\n        elif isinstance(model, (ModelType, str)):\n            # Single string or ModelType -> use default platform\n            model_platform = ModelPlatformType.DEFAULT\n            model_type = model\n            logger.warning(\n                f\"Model type '{model_type}' provided without a platform. \"\n                f\"Using platform '{model_platform}'. Note: platform \"\n                \"is not automatically inferred based on model type.\"\n            )\n            return ModelFactory.create(\n                model_platform=model_platform,\n                model_type=model_type,\n            )\n        elif isinstance(model, tuple) and len(model) == 2:\n            # Single tuple (platform, type)\n            model_platform, model_type = model  # type: ignore[assignment]\n            return ModelFactory.create(\n                model_platform=model_platform,\n                model_type=model_type,\n            )\n        else:\n            raise TypeError(\n                f\"Unsupported type for model parameter: {type(model)}\"\n            )\n\n    def _resolve_model_list(\n        self, model_list: list\n    ) -> Union[BaseModelBackend, List[BaseModelBackend]]:\n        r\"\"\"Resolves a list of model specifications into model backend\n        instances.\n\n        Args:\n            model_list (list): List of model specifications in various formats.\n\n        Returns:\n            Union[BaseModelBackend, List[BaseModelBackend]]: Resolved model\n                backend(s).\n\n        Raises:\n            TypeError: If the list elements format is not supported.\n        \"\"\"\n        if not model_list:  # Handle empty list\n            logger.warning(\n                \"Empty list provided for model, using default model.\"\n            )\n            return ModelFactory.create(\n                model_platform=ModelPlatformType.DEFAULT,\n                model_type=ModelType.DEFAULT,\n            )\n        elif isinstance(model_list[0], BaseModelBackend):\n            # List of pre-instantiated models\n            return model_list  # type: ignore[return-value]\n        elif isinstance(model_list[0], (str, ModelType)):\n            # List of strings or ModelTypes -> use default platform\n            model_platform = ModelPlatformType.DEFAULT\n            logger.warning(\n                f\"List of model types {model_list} provided without \"\n                f\"platforms. Using platform '{model_platform}' for all. \"\n                \"Note: platform is not automatically inferred based on \"\n                \"model type.\"\n            )\n            resolved_models_list = []\n            for model_type_item in model_list:\n                resolved_models_list.append(\n                    ModelFactory.create(\n                        model_platform=model_platform,\n                        model_type=model_type_item,  # type: ignore[arg-type]\n                    )\n                )\n            return resolved_models_list\n        elif isinstance(model_list[0], tuple) and len(model_list[0]) == 2:\n            # List of tuples (platform, type)\n            resolved_models_list = []\n            for model_spec in model_list:\n                platform, type_ = (  # type: ignore[index]\n                    model_spec[0],\n                    model_spec[1],\n                )\n                resolved_models_list.append(\n                    ModelFactory.create(\n                        model_platform=platform, model_type=type_\n                    )\n                )\n            return resolved_models_list\n        else:\n            raise TypeError(\n                \"Unsupported type for list elements in model: \"\n                f\"{type(model_list[0])}\"\n            )\n\n    @property\n    def system_message(self) -> Optional[BaseMessage]:\n        r\"\"\"Returns the system message for the agent.\"\"\"\n        return self._system_message\n\n    @property\n    def tool_dict(self) -> Dict[str, FunctionTool]:\n        r\"\"\"Returns a dictionary of internal tools.\"\"\"\n        return self._internal_tools\n\n    @property\n    def output_language(self) -> Optional[str]:\n        r\"\"\"Returns the output language for the agent.\"\"\"\n        return self._output_language\n\n    @output_language.setter\n    def output_language(self, value: str) -> None:\n        r\"\"\"Set the output language for the agent.\n\n        Note that this will clear the message history.\n        \"\"\"\n        self._output_language = value\n        self._system_message = (\n            self._generate_system_message_for_output_language()\n        )\n        self.init_messages()\n\n    def _get_full_tool_schemas(self) -> List[Dict[str, Any]]:\n        r\"\"\"Returns a list of tool schemas of all tools, including internal\n        and external tools.\n        \"\"\"\n        return list(self._external_tool_schemas.values()) + [\n            func_tool.get_openai_tool_schema()\n            for func_tool in self._internal_tools.values()\n        ]\n\n    def _get_external_tool_names(self) -> Set[str]:\n        r\"\"\"Returns a set of external tool names.\"\"\"\n        return set(self._external_tool_schemas.keys())\n\n    def add_tool(self, tool: Union[FunctionTool, Callable]) -> None:\n        r\"\"\"Add a tool to the agent.\"\"\"\n        new_tool = convert_to_function_tool(tool)\n        self._internal_tools[new_tool.get_function_name()] = new_tool\n\n    def add_tools(self, tools: List[Union[FunctionTool, Callable]]) -> None:\n        r\"\"\"Add a list of tools to the agent.\"\"\"\n        for tool in tools:\n            self.add_tool(tool)\n\n    def add_external_tool(\n        self, tool: Union[FunctionTool, Callable, Dict[str, Any]]\n    ) -> None:\n        new_tool_schema = convert_to_schema(tool)\n        self._external_tool_schemas[new_tool_schema[\"name\"]] = new_tool_schema\n\n    def remove_tool(self, tool_name: str) -> bool:\n        r\"\"\"Remove a tool from the agent by name.\n\n        Args:\n            tool_name (str): The name of the tool to remove.\n\n        Returns:\n            bool: Whether the tool was successfully removed.\n        \"\"\"\n        if tool_name in self._internal_tools:\n            del self._internal_tools[tool_name]\n            return True\n        return False\n\n    def remove_tools(self, tool_names: List[str]) -> None:\n        r\"\"\"Remove a list of tools from the agent by name.\"\"\"\n        for tool_name in tool_names:\n            self.remove_tool(tool_name)\n\n    def remove_external_tool(self, tool_name: str) -> bool:\n        r\"\"\"Remove an external tool from the agent by name.\n\n        Args:\n            tool_name (str): The name of the tool to remove.\n\n        Returns:\n            bool: Whether the tool was successfully removed.\n        \"\"\"\n        if tool_name in self._external_tool_schemas:\n            del self._external_tool_schemas[tool_name]\n            return True\n        return False\n\n    def update_memory(\n        self,\n        message: BaseMessage,\n        role: OpenAIBackendRole,\n        timestamp: Optional[float] = None,\n    ) -> None:\n        r\"\"\"Updates the agent memory with a new message.\n\n        If the single *message* exceeds the model's context window, it will\n        be **automatically split into multiple smaller chunks** before being\n        written into memory. This prevents later failures in\n        `ScoreBasedContextCreator` where an over-sized message cannot fit\n        into the available token budget at all.\n\n        This slicing logic handles both regular text messages (in the\n        `content` field) and long tool call results (in the `result` field of\n        a `FunctionCallingMessage`).\n\n        Args:\n            message (BaseMessage): The new message to add to the stored\n                messages.\n            role (OpenAIBackendRole): The backend role type.\n            timestamp (Optional[float], optional): Custom timestamp for the\n                memory record. If `None`, the current time will be used.\n                (default: :obj:`None`)\n                    (default: obj:`None`)\n        \"\"\"\n        import math\n        import time\n        import uuid as _uuid\n\n        # 1. Helper to write a record to memory\n        def _write_single_record(\n            message: BaseMessage, role: OpenAIBackendRole, timestamp: float\n        ):\n            self.memory.write_record(\n                MemoryRecord(\n                    message=message,\n                    role_at_backend=role,\n                    timestamp=timestamp,\n                    agent_id=self.agent_id,\n                )\n            )\n\n        base_ts = (\n            timestamp\n            if timestamp is not None\n            else time.time_ns() / 1_000_000_000\n        )\n\n        # 2. Get token handling utilities, fallback if unavailable\n        try:\n            context_creator = self.memory.get_context_creator()\n            token_counter = context_creator.token_counter\n            token_limit = context_creator.token_limit\n        except AttributeError:\n            _write_single_record(message, role, base_ts)\n            return\n\n        # 3. Check if slicing is necessary\n        try:\n            current_tokens = token_counter.count_tokens_from_messages(\n                [message.to_openai_message(role)]\n            )\n            _, ctx_tokens = self.memory.get_context()\n            remaining_budget = max(0, token_limit - ctx_tokens)\n\n            if current_tokens <= remaining_budget:\n                _write_single_record(message, role, base_ts)\n                return\n        except Exception as e:\n            logger.warning(\n                f\"Token calculation failed before chunking, \"\n                f\"writing message as-is. Error: {e}\"\n            )\n            _write_single_record(message, role, base_ts)\n            return\n\n        # 4. Perform slicing\n        logger.warning(\n            f\"Message with {current_tokens} tokens exceeds remaining budget \"\n            f\"of {remaining_budget}. Slicing into smaller chunks.\"\n        )\n\n        text_to_chunk: Optional[str] = None\n        is_function_result = False\n\n        if isinstance(message, FunctionCallingMessage) and isinstance(\n            message.result, str\n        ):\n            text_to_chunk = message.result\n            is_function_result = True\n        elif isinstance(message.content, str):\n            text_to_chunk = message.content\n\n        if not text_to_chunk or not text_to_chunk.strip():\n            _write_single_record(message, role, base_ts)\n            return\n        # Encode the entire text to get a list of all token IDs\n        try:\n            all_token_ids = token_counter.encode(text_to_chunk)\n        except Exception as e:\n            logger.error(f\"Failed to encode text for chunking: {e}\")\n            _write_single_record(message, role, base_ts)  # Fallback\n            return\n\n        if not all_token_ids:\n            _write_single_record(message, role, base_ts)  # Nothing to chunk\n            return\n\n        # 1.  Base chunk size: one-tenth of the smaller of (a) total token\n        # limit and (b) current remaining budget.  This prevents us from\n        # creating chunks that are guaranteed to overflow the\n        # immediate context window.\n        base_chunk_size = max(1, remaining_budget) // 10\n\n        # 2.  Each chunk gets a textual prefix such as:\n        #        \"[chunk 3/12 of a long message]\\n\"\n        #     The prefix itself consumes tokens, so if we do not subtract its\n        #     length the *total* tokens of the outgoing message (prefix + body)\n        #     can exceed the intended bound.  We estimate the prefix length\n        #     with a representative example that is safely long enough for the\n        #     vast majority of cases (three-digit indices).\n        sample_prefix = \"[chunk 1/1000 of a long message]\\n\"\n        prefix_token_len = len(token_counter.encode(sample_prefix))\n\n        # 3.  The real capacity for the message body is therefore the base\n        #     chunk size minus the prefix length.  Fallback to at least one\n        #     token to avoid zero or negative sizes.\n        chunk_body_limit = max(1, base_chunk_size - prefix_token_len)\n\n        # 4.  Calculate how many chunks we will need with this body size.\n        num_chunks = math.ceil(len(all_token_ids) / chunk_body_limit)\n        group_id = str(_uuid.uuid4())\n\n        for i in range(num_chunks):\n            start_idx = i * chunk_body_limit\n            end_idx = start_idx + chunk_body_limit\n            chunk_token_ids = all_token_ids[start_idx:end_idx]\n\n            chunk_body = token_counter.decode(chunk_token_ids)\n\n            prefix = f\"[chunk {i + 1}/{num_chunks} of a long message]\\n\"\n            new_body = prefix + chunk_body\n\n            if is_function_result and isinstance(\n                message, FunctionCallingMessage\n            ):\n                new_msg: BaseMessage = FunctionCallingMessage(\n                    role_name=message.role_name,\n                    role_type=message.role_type,\n                    meta_dict=message.meta_dict,\n                    content=message.content,\n                    func_name=message.func_name,\n                    args=message.args,\n                    result=new_body,\n                    tool_call_id=message.tool_call_id,\n                )\n            else:\n                new_msg = message.create_new_instance(new_body)\n\n            meta = (new_msg.meta_dict or {}).copy()\n            meta.update(\n                {\n                    \"chunk_idx\": i + 1,\n                    \"chunk_total\": num_chunks,\n                    \"chunk_group_id\": group_id,\n                }\n            )\n            new_msg.meta_dict = meta\n\n            # Increment timestamp slightly to maintain order\n            _write_single_record(new_msg, role, base_ts + i * 1e-6)\n\n    def load_memory(self, memory: AgentMemory) -> None:\n        r\"\"\"Load the provided memory into the agent.\n\n        Args:\n            memory (AgentMemory): The memory to load into the agent.\n\n        Returns:\n            None\n        \"\"\"\n\n        for context_record in memory.retrieve():\n            self.memory.write_record(context_record.memory_record)\n        logger.info(f\"Memory loaded from {memory}\")\n\n    def load_memory_from_path(self, path: str) -> None:\n        r\"\"\"Loads memory records from a JSON file filtered by this agent's ID.\n\n        Args:\n            path (str): The file path to a JSON memory file that uses\n                JsonStorage.\n\n        Raises:\n            ValueError: If no matching records for the agent_id are found\n                (optional check; commented out below).\n        \"\"\"\n        json_store = JsonStorage(Path(path))\n        all_records = json_store.load()\n\n        if not all_records:\n            raise ValueError(\n                f\"No records found for agent_id={self.agent_id} in {path}\"\n            )\n\n        for record_dict in all_records:\n            # Validate the record dictionary before conversion\n            required_keys = ['message', 'role_at_backend', 'agent_id']\n            if not all(key in record_dict for key in required_keys):\n                logger.warning(\n                    f\"Skipping invalid record: missing required \"\n                    f\"keys in {record_dict}\"\n                )\n                continue\n\n            # Validate message structure in the record\n            if (\n                not isinstance(record_dict['message'], dict)\n                or '__class__' not in record_dict['message']\n            ):\n                logger.warning(\n                    f\"Skipping invalid record: malformed message \"\n                    f\"structure in {record_dict}\"\n                )\n                continue\n\n            try:\n                record = MemoryRecord.from_dict(record_dict)\n                self.memory.write_records([record])\n            except Exception as e:\n                logger.warning(\n                    f\"Error converting record to MemoryRecord: {e}. \"\n                    f\"Record: {record_dict}\"\n                )\n        logger.info(f\"Memory loaded from {path}\")\n\n    def save_memory(self, path: str) -> None:\n        r\"\"\"Retrieves the current conversation data from memory and writes it\n        into a JSON file using JsonStorage.\n\n        Args:\n            path (str): Target file path to store JSON data.\n        \"\"\"\n        json_store = JsonStorage(Path(path))\n        context_records = self.memory.retrieve()\n        to_save = [cr.memory_record.to_dict() for cr in context_records]\n        json_store.save(to_save)\n        logger.info(f\"Memory saved to {path}\")\n\n    def clear_memory(self) -> None:\n        r\"\"\"Clear the agent's memory and reset to initial state.\n\n        Returns:\n            None\n        \"\"\"\n        self.memory.clear()\n        if self.system_message is not None:\n            self.update_memory(self.system_message, OpenAIBackendRole.SYSTEM)\n\n    def _generate_system_message_for_output_language(\n        self,\n    ) -> Optional[BaseMessage]:\n        r\"\"\"Generate a new system message with the output language prompt.\n\n        The output language determines the language in which the output text\n        should be generated.\n\n        Returns:\n            BaseMessage: The new system message.\n        \"\"\"\n        if not self._output_language:\n            return self._original_system_message\n\n        language_prompt = (\n            \"\\nRegardless of the input language, \"\n            f\"you must output text in {self._output_language}.\"\n        )\n\n        if self._original_system_message is not None:\n            content = self._original_system_message.content + language_prompt\n            return self._original_system_message.create_new_instance(content)\n        else:\n            return BaseMessage.make_assistant_message(\n                role_name=\"Assistant\",\n                content=language_prompt,\n            )\n\n    def init_messages(self) -> None:\n        r\"\"\"Initializes the stored messages list with the current system\n        message.\n        \"\"\"\n        import time\n\n        self.memory.clear()\n        # avoid UserWarning: The `ChatHistoryMemory` is empty.\n        if self.system_message is not None:\n            self.memory.write_record(\n                MemoryRecord(\n                    message=self.system_message,\n                    role_at_backend=OpenAIBackendRole.SYSTEM,\n                    timestamp=time.time_ns() / 1_000_000_000,\n                    agent_id=self.agent_id,\n                )\n            )\n\n    def record_message(self, message: BaseMessage) -> None:\n        r\"\"\"Records the externally provided message into the agent memory as if\n        it were an answer of the :obj:`ChatAgent` from the backend. Currently,\n        the choice of the critic is submitted with this method.\n\n        Args:\n            message (BaseMessage): An external message to be recorded in the\n                memory.\n        \"\"\"\n        self.update_memory(message, OpenAIBackendRole.ASSISTANT)\n\n    def _try_format_message(\n        self, message: BaseMessage, response_format: Type[BaseModel]\n    ) -> bool:\n        r\"\"\"Try to format the message if needed.\n\n        Returns:\n            bool: Whether the message is formatted successfully (or no format\n                is needed).\n        \"\"\"\n        if message.parsed:\n            return True\n\n        try:\n            message.parsed = response_format.model_validate_json(\n                message.content\n            )\n            return True\n        except ValidationError:\n            return False\n\n    def _check_tools_strict_compatibility(self) -> bool:\n        r\"\"\"Check if all tools are compatible with OpenAI strict mode.\n\n        Returns:\n            bool: True if all tools are strict mode compatible,\n                False otherwise.\n        \"\"\"\n        tool_schemas = self._get_full_tool_schemas()\n        for schema in tool_schemas:\n            if not schema.get(\"function\", {}).get(\"strict\", True):\n                return False\n        return True\n\n    def _convert_response_format_to_prompt(\n        self, response_format: Type[BaseModel]\n    ) -> str:\n        r\"\"\"Convert a Pydantic response format to a prompt instruction.\n\n        Args:\n            response_format (Type[BaseModel]): The Pydantic model class.\n\n        Returns:\n            str: A prompt instruction requesting the specific format.\n        \"\"\"\n        try:\n            # Get the JSON schema from the Pydantic model\n            schema = response_format.model_json_schema()\n\n            # Create a prompt based on the schema\n            format_instruction = (\n                \"\\n\\nPlease respond in the following JSON format:\\n\" \"{\\n\"\n            )\n\n            properties = schema.get(\"properties\", {})\n            for field_name, field_info in properties.items():\n                field_type = field_info.get(\"type\", \"string\")\n                description = field_info.get(\"description\", \"\")\n\n                if field_type == \"array\":\n                    format_instruction += (\n                        f'    \"{field_name}\": [\"array of values\"]'\n                    )\n                elif field_type == \"object\":\n                    format_instruction += f'    \"{field_name}\": {{\"object\"}}'\n                elif field_type == \"boolean\":\n                    format_instruction += f'    \"{field_name}\": true'\n                elif field_type == \"number\":\n                    format_instruction += f'    \"{field_name}\": 0'\n                else:\n                    format_instruction += f'    \"{field_name}\": \"string value\"'\n\n                if description:\n                    format_instruction += f'  // {description}'\n\n                # Add comma if not the last item\n                if field_name != list(properties.keys())[-1]:\n                    format_instruction += \",\"\n                format_instruction += \"\\n\"\n\n            format_instruction += \"}\"\n            return format_instruction\n\n        except Exception as e:\n            logger.warning(\n                f\"Failed to convert response_format to prompt: {e}. \"\n                f\"Using generic format instruction.\"\n            )\n            return (\n                \"\\n\\nPlease respond in a structured JSON format \"\n                \"that matches the requested schema.\"\n            )\n\n    def _handle_response_format_with_non_strict_tools(\n        self,\n        input_message: Union[BaseMessage, str],\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> Tuple[Union[BaseMessage, str], Optional[Type[BaseModel]], bool]:\n        r\"\"\"Handle response format when tools are not strict mode compatible.\n\n        Args:\n            input_message: The original input message.\n            response_format: The requested response format.\n\n        Returns:\n            Tuple: (modified_message, modified_response_format,\n                   used_prompt_formatting)\n        \"\"\"\n        if response_format is None:\n            return input_message, response_format, False\n\n        # Check if tools are strict mode compatible\n        if self._check_tools_strict_compatibility():\n            return input_message, response_format, False\n\n        # Tools are not strict compatible, convert to prompt\n        logger.info(\n            \"Non-strict tools detected. Converting response_format to \"\n            \"prompt-based formatting.\"\n        )\n\n        format_prompt = self._convert_response_format_to_prompt(\n            response_format\n        )\n\n        # Modify the message to include format instruction\n        modified_message: Union[BaseMessage, str]\n        if isinstance(input_message, str):\n            modified_message = input_message + format_prompt\n        else:\n            modified_message = input_message.create_new_instance(\n                input_message.content + format_prompt\n            )\n\n        # Return None for response_format to avoid strict mode conflicts\n        # and True to indicate we used prompt formatting\n        return modified_message, None, True\n\n    def _apply_prompt_based_parsing(\n        self,\n        response: ModelResponse,\n        original_response_format: Type[BaseModel],\n    ) -> None:\n        r\"\"\"Apply manual parsing when using prompt-based formatting.\n\n        Args:\n            response: The model response to parse.\n            original_response_format: The original response format class.\n        \"\"\"\n        for message in response.output_messages:\n            if message.content:\n                try:\n                    # Try to extract JSON from the response content\n                    import json\n                    import re\n\n                    from pydantic import ValidationError\n\n                    # Try to find JSON in the content\n                    content = message.content.strip()\n\n                    # Try direct parsing first\n                    try:\n                        parsed_json = json.loads(content)\n                        message.parsed = (\n                            original_response_format.model_validate(\n                                parsed_json\n                            )\n                        )\n                        continue\n                    except (json.JSONDecodeError, ValidationError):\n                        pass\n\n                    # Try to extract JSON from text\n                    json_pattern = r'\\{[^{}]*(?:\\{[^{}]*\\}[^{}]*)*\\}'\n                    json_matches = re.findall(json_pattern, content, re.DOTALL)\n\n                    for json_str in json_matches:\n                        try:\n                            parsed_json = json.loads(json_str)\n                            message.parsed = (\n                                original_response_format.model_validate(\n                                    parsed_json\n                                )\n                            )\n                            # Update content to just the JSON for consistency\n                            message.content = json.dumps(parsed_json)\n                            break\n                        except (json.JSONDecodeError, ValidationError):\n                            continue\n\n                    if not message.parsed:\n                        logger.warning(\n                            f\"Failed to parse JSON from response: \"\n                            f\"{content[:100]}...\"\n                        )\n\n                except Exception as e:\n                    logger.warning(f\"Error during prompt-based parsing: {e}\")\n\n    def _format_response_if_needed(\n        self,\n        response: ModelResponse,\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> None:\n        r\"\"\"Format the response if needed.\n\n        This function won't format the response under the following cases:\n        1. The response format is None (not provided)\n        2. The response is empty\n        \"\"\"\n        if response_format is None:\n            return\n\n        for message in response.output_messages:\n            if self._try_format_message(message, response_format):\n                continue\n\n            prompt = SIMPLE_FORMAT_PROMPT.format(content=message.content)\n            openai_message: OpenAIMessage = {\"role\": \"user\", \"content\": prompt}\n            # Explicitly set the tools to empty list to avoid calling tools\n            response = self._get_model_response(\n                [openai_message], 0, response_format, []\n            )\n            message.content = response.output_messages[0].content\n            if not self._try_format_message(message, response_format):\n                logger.warning(f\"Failed to parse response: {message.content}\")\n                logger.warning(\n                    \"To improve reliability, consider using models \"\n                    \"that are better equipped to handle structured output\"\n                )\n\n    async def _aformat_response_if_needed(\n        self,\n        response: ModelResponse,\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> None:\n        r\"\"\"Format the response if needed.\"\"\"\n\n        if response_format is None:\n            return\n\n        for message in response.output_messages:\n            self._try_format_message(message, response_format)\n            if message.parsed:\n                continue\n\n            prompt = SIMPLE_FORMAT_PROMPT.format(content=message.content)\n            openai_message: OpenAIMessage = {\"role\": \"user\", \"content\": prompt}\n            response = await self._aget_model_response(\n                [openai_message], 0, response_format, []\n            )\n            message.content = response.output_messages[0].content\n            self._try_format_message(message, response_format)\n\n    @observe()\n    def step(\n        self,\n        input_message: Union[BaseMessage, str],\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> ChatAgentResponse:\n        r\"\"\"Executes a single step in the chat session, generating a response\n        to the input message.\n\n        Args:\n            input_message (Union[BaseMessage, str]): The input message for the\n                agent. If provided as a BaseMessage, the `role` is adjusted to\n                `user` to indicate an external message.\n            response_format (Optional[Type[BaseModel]], optional): A Pydantic\n                model defining the expected structure of the response. Used to\n                generate a structured response if provided. (default:\n                :obj:`None`)\n\n        Returns:\n            ChatAgentResponse: Contains output messages, a termination status\n                flag, and session information.\n        \"\"\"\n\n        # Set Langfuse session_id using agent_id for trace grouping\n        try:\n            from camel.utils.langfuse import set_current_agent_session_id\n\n            set_current_agent_session_id(self.agent_id)\n        except ImportError:\n            pass  # Langfuse not available\n\n        # Handle response format compatibility with non-strict tools\n        original_response_format = response_format\n        input_message, response_format, used_prompt_formatting = (\n            self._handle_response_format_with_non_strict_tools(\n                input_message, response_format\n            )\n        )\n\n        # Convert input message to BaseMessage if necessary\n        if isinstance(input_message, str):\n            input_message = BaseMessage.make_user_message(\n                role_name=\"User\", content=input_message\n            )\n\n        # Add user input to memory\n        self.update_memory(input_message, OpenAIBackendRole.USER)\n\n        tool_call_records: List[ToolCallingRecord] = []\n        external_tool_call_requests: Optional[List[ToolCallRequest]] = None\n\n        accumulated_context_tokens = (\n            0  # This tracks cumulative context tokens, not API usage tokens\n        )\n\n        # Initialize token usage tracker\n        step_token_usage = self._create_token_usage_tracker()\n        iteration_count = 0\n\n        while True:\n            try:\n                openai_messages, num_tokens = self.memory.get_context()\n                accumulated_context_tokens += num_tokens\n            except RuntimeError as e:\n                return self._step_terminate(\n                    e.args[1], tool_call_records, \"max_tokens_exceeded\"\n                )\n            # Get response from model backend\n            response = self._get_model_response(\n                openai_messages,\n                accumulated_context_tokens,  # Cumulative context tokens\n                response_format,\n                self._get_full_tool_schemas(),\n            )\n            iteration_count += 1\n\n            # Accumulate API token usage\n            self._update_token_usage_tracker(\n                step_token_usage, response.usage_dict\n            )\n\n            # Terminate Agent if stop_event is set\n            if self.stop_event and self.stop_event.is_set():\n                # Use the _step_terminate to terminate the agent with reason\n                return self._step_terminate(\n                    accumulated_context_tokens,\n                    tool_call_records,\n                    \"termination_triggered\",\n                )\n\n            if tool_call_requests := response.tool_call_requests:\n                # Process all tool calls\n                for tool_call_request in tool_call_requests:\n                    if (\n                        tool_call_request.tool_name\n                        in self._external_tool_schemas\n                    ):\n                        if external_tool_call_requests is None:\n                            external_tool_call_requests = []\n                        external_tool_call_requests.append(tool_call_request)\n                    else:\n                        tool_call_records.append(\n                            self._execute_tool(tool_call_request)\n                        )\n\n                # If we found external tool calls, break the loop\n                if external_tool_call_requests:\n                    break\n\n                if (\n                    self.max_iteration is not None\n                    and iteration_count >= self.max_iteration\n                ):\n                    break\n\n                # If we're still here, continue the loop\n                continue\n\n            break\n\n        self._format_response_if_needed(response, response_format)\n\n        # Apply manual parsing if we used prompt-based formatting\n        if used_prompt_formatting and original_response_format:\n            self._apply_prompt_based_parsing(\n                response, original_response_format\n            )\n\n        self._record_final_output(response.output_messages)\n\n        return self._convert_to_chatagent_response(\n            response,\n            tool_call_records,\n            accumulated_context_tokens,\n            external_tool_call_requests,\n            step_token_usage[\"prompt_tokens\"],\n            step_token_usage[\"completion_tokens\"],\n            step_token_usage[\"total_tokens\"],\n        )\n\n    @property\n    def chat_history(self) -> List[OpenAIMessage]:\n        openai_messages, _ = self.memory.get_context()\n        return openai_messages\n\n    @observe()\n    async def astep(\n        self,\n        input_message: Union[BaseMessage, str],\n        response_format: Optional[Type[BaseModel]] = None,\n    ) -> ChatAgentResponse:\n        r\"\"\"Performs a single step in the chat session by generating a response\n        to the input message. This agent step can call async function calls.\n\n        Args:\n            input_message (Union[BaseMessage, str]): The input message to the\n                agent. For BaseMessage input, its `role` field that specifies\n                the role at backend may be either `user` or `assistant` but it\n                will be set to `user` anyway since for the self agent any\n                incoming message is external. For str input, the `role_name`\n                would be `User`.\n            response_format (Optional[Type[BaseModel]], optional): A pydantic\n                model class that includes value types and field descriptions\n                used to generate a structured response by LLM. This schema\n                helps in defining the expected output format. (default:\n                :obj:`None`)\n\n        Returns:\n            ChatAgentResponse: A struct containing the output messages,\n                a boolean indicating whether the chat session has terminated,\n                and information about the chat session.\n        \"\"\"\n        try:\n            from camel.utils.langfuse import set_current_agent_session_id\n\n            set_current_agent_session_id(self.agent_id)\n        except ImportError:\n            pass  # Langfuse not available\n\n        # Handle response format compatibility with non-strict tools\n        original_response_format = response_format\n        input_message, response_format, used_prompt_formatting = (\n            self._handle_response_format_with_non_strict_tools(\n                input_message, response_format\n            )\n        )\n\n        if isinstance(input_message, str):\n            input_message = BaseMessage.make_user_message(\n                role_name=\"User\", content=input_message\n            )\n\n        self.update_memory(input_message, OpenAIBackendRole.USER)\n\n        tool_call_records: List[ToolCallingRecord] = []\n        external_tool_call_requests: Optional[List[ToolCallRequest]] = None\n        accumulated_context_tokens = (\n            0  # This tracks cumulative context tokens, not API usage tokens\n        )\n\n        # Initialize token usage tracker\n        step_token_usage = self._create_token_usage_tracker()\n        iteration_count = 0\n        while True:\n            try:\n                openai_messages, num_tokens = self.memory.get_context()\n                accumulated_context_tokens += num_tokens\n            except RuntimeError as e:\n                return self._step_terminate(\n                    e.args[1], tool_call_records, \"max_tokens_exceeded\"\n                )\n\n            response = await self._aget_model_response(\n                openai_messages,\n                accumulated_context_tokens,\n                response_format,\n                self._get_full_tool_schemas(),\n            )\n            iteration_count += 1\n\n            # Accumulate API token usage\n            self._update_token_usage_tracker(\n                step_token_usage, response.usage_dict\n            )\n\n            # Terminate Agent if stop_event is set\n            if self.stop_event and self.stop_event.is_set():\n                # Use the _step_terminate to terminate the agent with reason\n                return self._step_terminate(\n                    accumulated_context_tokens,\n                    tool_call_records,\n                    \"termination_triggered\",\n                )\n\n            if tool_call_requests := response.tool_call_requests:\n                # Process all tool calls\n                for tool_call_request in tool_call_requests:\n                    if (\n                        tool_call_request.tool_name\n                        in self._external_tool_schemas\n                    ):\n                        if external_tool_call_requests is None:\n                            external_tool_call_requests = []\n                        external_tool_call_requests.append(tool_call_request)\n                    else:\n                        tool_call_record = await self._aexecute_tool(\n                            tool_call_request\n                        )\n                        tool_call_records.append(tool_call_record)\n\n                # If we found an external tool call, break the loop\n                if external_tool_call_requests:\n                    break\n\n                if (\n                    self.max_iteration is not None\n                    and iteration_count >= self.max_iteration\n                ):\n                    break\n\n                # If we're still here, continue the loop\n                continue\n\n            break\n\n        await self._aformat_response_if_needed(response, response_format)\n\n        # Apply manual parsing if we used prompt-based formatting\n        if used_prompt_formatting and original_response_format:\n            self._apply_prompt_based_parsing(\n                response, original_response_format\n            )\n\n        self._record_final_output(response.output_messages)\n\n        return self._convert_to_chatagent_response(\n            response,\n            tool_call_records,\n            accumulated_context_tokens,\n            external_tool_call_requests,\n            step_token_usage[\"prompt_tokens\"],\n            step_token_usage[\"completion_tokens\"],\n            step_token_usage[\"total_tokens\"],\n        )\n\n    def _create_token_usage_tracker(self) -> Dict[str, int]:\n        r\"\"\"Creates a fresh token usage tracker for a step.\n\n        Returns:\n            Dict[str, int]: A dictionary for tracking token usage.\n        \"\"\"\n        return {\"prompt_tokens\": 0, \"completion_tokens\": 0, \"total_tokens\": 0}\n\n    def _update_token_usage_tracker(\n        self, tracker: Dict[str, int], usage_dict: Dict[str, int]\n    ) -> None:\n        r\"\"\"Updates a token usage tracker with values from a usage dictionary.\n\n        Args:\n            tracker (Dict[str, int]): The token usage tracker to update.\n            usage_dict (Dict[str, int]): The usage dictionary with new values.\n        \"\"\"\n        tracker[\"prompt_tokens\"] += usage_dict.get(\"prompt_tokens\", 0)\n        tracker[\"completion_tokens\"] += usage_dict.get(\"completion_tokens\", 0)\n        tracker[\"total_tokens\"] += usage_dict.get(\"total_tokens\", 0)\n\n    def _convert_to_chatagent_response(\n        self,\n        response: ModelResponse,\n        tool_call_records: List[ToolCallingRecord],\n        num_tokens: int,  # Context tokens from the last call in step\n        external_tool_call_requests: Optional[List[ToolCallRequest]],\n        step_api_prompt_tokens: int = 0,\n        step_api_completion_tokens: int = 0,\n        step_api_total_tokens: int = 0,\n    ) -> ChatAgentResponse:\n        r\"\"\"Parse the final model response into the chat agent response.\"\"\"\n        # Create usage_dict for the current step's API calls\n        step_api_usage_dict = {\n            \"prompt_tokens\": step_api_prompt_tokens,\n            \"completion_tokens\": step_api_completion_tokens,\n            \"total_tokens\": step_api_total_tokens,\n        }\n\n        info = self._step_get_info(\n            response.output_messages,\n            response.finish_reasons,\n            step_api_usage_dict,  # Pass step-specific API usage here\n            response.response_id,\n            tool_call_records,\n            num_tokens,  # This is context tokens, not API usage\n            external_tool_call_requests,\n        )\n\n        return ChatAgentResponse(\n            msgs=response.output_messages,\n            terminated=self.terminated,\n            info=info,\n        )\n\n    def _record_final_output(self, output_messages: List[BaseMessage]) -> None:\n        r\"\"\"Log final messages or warnings about multiple responses.\"\"\"\n        if len(output_messages) == 1:\n            self.record_message(output_messages[0])\n        else:\n            logger.warning(\n                \"Multiple messages returned in `step()`. Record \"\n                \"selected message manually using `record_message()`.\"\n            )\n\n    def _get_model_response(\n        self,\n        openai_messages: List[OpenAIMessage],\n        num_tokens: int,\n        response_format: Optional[Type[BaseModel]] = None,\n        tool_schemas: Optional[List[Dict[str, Any]]] = None,\n    ) -> ModelResponse:\n        r\"\"\"Internal function for agent step model response.\"\"\"\n\n        response = None\n        try:\n            response = self.model_backend.run(\n                openai_messages, response_format, tool_schemas or None\n            )\n        except Exception as exc:\n            logger.error(\n                f\"An error occurred while running model \"\n                f\"{self.model_backend.model_type}, \"\n                f\"index: {self.model_backend.current_model_index}\",\n                exc_info=exc,\n            )\n            error_info = str(exc)\n\n        if not response and self.model_backend.num_models > 1:\n            raise ModelProcessingError(\n                \"Unable to process messages: none of the provided models \"\n                \"run successfully.\"\n            )\n        elif not response:\n            raise ModelProcessingError(\n                f\"Unable to process messages: the only provided model \"\n                f\"did not run successfully. Error: {error_info}\"\n            )\n\n        sanitized_messages = self._sanitize_messages_for_logging(\n            openai_messages\n        )\n        logger.info(\n            f\"Model {self.model_backend.model_type}, \"\n            f\"index {self.model_backend.current_model_index}, \"\n            f\"processed these messages: {sanitized_messages}\"\n        )\n\n        if isinstance(response, ChatCompletion):\n            return self._handle_batch_response(response)\n        else:\n            return self._handle_stream_response(response, num_tokens)\n\n    async def _aget_model_response(\n        self,\n        openai_messages: List[OpenAIMessage],\n        num_tokens: int,\n        response_format: Optional[Type[BaseModel]] = None,\n        tool_schemas: Optional[List[Dict[str, Any]]] = None,\n    ) -> ModelResponse:\n        r\"\"\"Internal function for agent step model response.\"\"\"\n\n        response = None\n        try:\n            response = await self.model_backend.arun(\n                openai_messages, response_format, tool_schemas or None\n            )\n        except Exception as exc:\n            logger.error(\n                f\"An error occurred while running model \"\n                f\"{self.model_backend.model_type}, \"\n                f\"index: {self.model_backend.current_model_index}\",\n                exc_info=exc,\n            )\n            error_info = str(exc)\n\n        if not response and self.model_backend.num_models > 1:\n            raise ModelProcessingError(\n                \"Unable to process messages: none of the provided models \"\n                \"run successfully.\"\n            )\n        elif not response:\n            raise ModelProcessingError(\n                f\"Unable to process messages: the only provided model \"\n                f\"did not run successfully. Error: {error_info}\"\n            )\n\n        sanitized_messages = self._sanitize_messages_for_logging(\n            openai_messages\n        )\n        logger.info(\n            f\"Model {self.model_backend.model_type}, \"\n            f\"index {self.model_backend.current_model_index}, \"\n            f\"processed these messages: {sanitized_messages}\"\n        )\n\n        if isinstance(response, ChatCompletion):\n            return self._handle_batch_response(response)\n        else:\n            return await self._ahandle_stream_response(response, num_tokens)\n\n    def _sanitize_messages_for_logging(self, messages):\n        r\"\"\"Sanitize OpenAI messages for logging by replacing base64 image\n        data with a simple message and a link to view the image.\n\n        Args:\n            messages (List[OpenAIMessage]): The OpenAI messages to sanitize.\n\n        Returns:\n            List[OpenAIMessage]: The sanitized OpenAI messages.\n        \"\"\"\n        import hashlib\n        import os\n        import re\n        import tempfile\n\n        # Create a copy of messages for logging to avoid modifying the\n        # original messages\n        sanitized_messages = []\n        for msg in messages:\n            if isinstance(msg, dict):\n                sanitized_msg = msg.copy()\n                # Check if content is a list (multimodal content with images)\n                if isinstance(sanitized_msg.get('content'), list):\n                    content_list = []\n                    for item in sanitized_msg['content']:\n                        if (\n                            isinstance(item, dict)\n                            and item.get('type') == 'image_url'\n                        ):\n                            # Handle image URL\n                            image_url = item.get('image_url', {}).get(\n                                'url', ''\n                            )\n                            if image_url and image_url.startswith(\n                                'data:image'\n                            ):\n                                # Extract image data and format\n                                match = re.match(\n                                    r'data:image/([^;]+);base64,(.+)',\n                                    image_url,\n                                )\n                                if match:\n                                    img_format, base64_data = match.groups()\n\n                                    # Create a hash of the image data to use\n                                    # as filename\n                                    img_hash = hashlib.md5(\n                                        base64_data[:100].encode()\n                                    ).hexdigest()[:10]\n                                    img_filename = (\n                                        f\"image_{img_hash}.{img_format}\"\n                                    )\n\n                                    # Save image to temp directory for viewing\n                                    try:\n                                        import base64\n\n                                        temp_dir = tempfile.gettempdir()\n                                        img_path = os.path.join(\n                                            temp_dir, img_filename\n                                        )\n\n                                        # Only save if file doesn't exist\n                                        if not os.path.exists(img_path):\n                                            with open(img_path, 'wb') as f:\n                                                f.write(\n                                                    base64.b64decode(\n                                                        base64_data\n                                                    )\n                                                )\n\n                                        # Create a file:// URL that can be\n                                        # opened\n                                        file_url = f\"file://{img_path}\"\n\n                                        content_list.append(\n                                            {\n                                                'type': 'image_url',\n                                                'image_url': {\n                                                    'url': f'{file_url}',\n                                                    'detail': item.get(\n                                                        'image_url', {}\n                                                    ).get('detail', 'auto'),\n                                                },\n                                            }\n                                        )\n                                    except Exception as e:\n                                        # If saving fails, fall back to simple\n                                        # message\n                                        content_list.append(\n                                            {\n                                                'type': 'image_url',\n                                                'image_url': {\n                                                    'url': '[base64 '\n                                                    + 'image - error saving: '\n                                                    + str(e)\n                                                    + ']',\n                                                    'detail': item.get(\n                                                        'image_url', {}\n                                                    ).get('detail', 'auto'),\n                                                },\n                                            }\n                                        )\n                                else:\n                                    # If regex fails, fall back to simple\n                                    # message\n                                    content_list.append(\n                                        {\n                                            'type': 'image_url',\n                                            'image_url': {\n                                                'url': '[base64 '\n                                                + 'image - invalid format]',\n                                                'detail': item.get(\n                                                    'image_url', {}\n                                                ).get('detail', 'auto'),\n                                            },\n                                        }\n                                    )\n                            else:\n                                content_list.append(item)\n                        else:\n                            content_list.append(item)\n                    sanitized_msg['content'] = content_list\n                sanitized_messages.append(sanitized_msg)\n            else:\n                sanitized_messages.append(msg)\n        return sanitized_messages\n\n    def _step_get_info(\n        self,\n        output_messages: List[BaseMessage],\n        finish_reasons: List[str],\n        usage_dict: Dict[str, int],\n        response_id: str,\n        tool_calls: List[ToolCallingRecord],\n        num_tokens: int,\n        external_tool_call_requests: Optional[List[ToolCallRequest]] = None,\n    ) -> Dict[str, Any]:\n        r\"\"\"Process the output of a chat step and gather information about the\n        step.\n\n        This method checks for termination conditions, updates the agent's\n        state, and collects information about the chat step, including tool\n        calls and termination reasons.\n\n        Args:\n            output_messages (List[BaseMessage]): The messages generated in\n                this step.\n            finish_reasons (List[str]): The reasons for finishing the\n                generation for each message.\n            usage_dict (Dict[str, int]): Dictionary containing token usage\n                information.\n            response_id (str): The ID of the response from the model.\n            tool_calls (List[ToolCallingRecord]): Records of function calls\n                made during this step.\n            num_tokens (int): The number of tokens used in this step.\n            external_tool_call_request (Optional[ToolCallRequest]): The\n                request for external tool call.\n\n        Returns:\n            Dict[str, Any]: A dictionary containing information about the chat\n                step, including termination status, reasons, and tool call\n                information.\n\n        Note:\n            This method iterates over all response terminators and checks if\n            any of them signal termination. If a terminator signals\n            termination, the agent's state is updated accordingly, and the\n            termination reason is recorded.\n        \"\"\"\n        termination = [\n            terminator.is_terminated(output_messages)\n            for terminator in self.response_terminators\n        ]\n        # Terminate the agent if any of the terminator terminates\n        self.terminated, termination_reason = next(\n            (\n                (terminated, termination_reason)\n                for terminated, termination_reason in termination\n                if terminated\n            ),\n            (False, None),\n        )\n        # For now only retain the first termination reason\n        if self.terminated and termination_reason is not None:\n            finish_reasons = [termination_reason] * len(finish_reasons)\n\n        return get_info_dict(\n            response_id,\n            usage_dict,\n            finish_reasons,\n            num_tokens,\n            tool_calls,\n            external_tool_call_requests,\n        )\n\n    def _handle_batch_response(\n        self, response: ChatCompletion\n    ) -> ModelResponse:\n        r\"\"\"Process a batch response from the model and extract the necessary\n        information.\n\n        Args:\n            response (ChatCompletion): Model response.\n\n        Returns:\n            _ModelResponse: parsed model response.\n        \"\"\"\n        output_messages: List[BaseMessage] = []\n        for choice in response.choices:\n            # Skip messages with no meaningful content\n            if (\n                choice.message.content is None\n                or choice.message.content.strip() == \"\"\n            ) and not choice.message.tool_calls:\n                continue\n\n            meta_dict = {}\n            if logprobs_info := handle_logprobs(choice):\n                meta_dict[\"logprobs_info\"] = logprobs_info\n\n            chat_message = BaseMessage(\n                role_name=self.role_name,\n                role_type=self.role_type,\n                meta_dict=meta_dict,\n                content=choice.message.content or \"\",\n                parsed=getattr(choice.message, \"parsed\", None),\n            )\n\n            output_messages.append(chat_message)\n\n        finish_reasons = [\n            str(choice.finish_reason) for choice in response.choices\n        ]\n\n        usage = {}\n        if response.usage is not None:\n            usage = safe_model_dump(response.usage)\n\n        tool_call_requests: Optional[List[ToolCallRequest]] = None\n        if tool_calls := response.choices[0].message.tool_calls:\n            tool_call_requests = []\n            for tool_call in tool_calls:\n                tool_name = tool_call.function.name\n                tool_call_id = tool_call.id\n                args = json.loads(tool_call.function.arguments)\n                tool_call_request = ToolCallRequest(\n                    tool_name=tool_name, args=args, tool_call_id=tool_call_id\n                )\n                tool_call_requests.append(tool_call_request)\n\n        return ModelResponse(\n            response=response,\n            tool_call_requests=tool_call_requests,\n            output_messages=output_messages,\n            finish_reasons=finish_reasons,\n            usage_dict=usage,\n            response_id=response.id or \"\",\n        )\n\n    def _handle_stream_response(\n        self,\n        response: Stream[ChatCompletionChunk],\n        prompt_tokens: int,\n    ) -> ModelResponse:\n        r\"\"\"Process a stream response from the model and extract the necessary\n        information.\n\n        Args:\n            response (dict): Model response.\n            prompt_tokens (int): Number of input prompt tokens.\n\n        Returns:\n            _ModelResponse: a parsed model response.\n        \"\"\"\n        content_dict: defaultdict = defaultdict(lambda: \"\")\n        finish_reasons_dict: defaultdict = defaultdict(lambda: \"\")\n        output_messages: List[BaseMessage] = []\n        response_id: str = \"\"\n        # All choices in one response share one role\n        for chunk in response:\n            # Some model platforms like siliconflow may return None for the\n            # chunk.id\n            response_id = chunk.id if chunk.id else str(uuid.uuid4())\n            self._handle_chunk(\n                chunk, content_dict, finish_reasons_dict, output_messages\n            )\n        finish_reasons = [\n            finish_reasons_dict[i] for i in range(len(finish_reasons_dict))\n        ]\n        usage_dict = self.get_usage_dict(output_messages, prompt_tokens)\n\n        # TODO: Handle tool calls\n        return ModelResponse(\n            response=response,\n            tool_call_requests=None,\n            output_messages=output_messages,\n            finish_reasons=finish_reasons,\n            usage_dict=usage_dict,\n            response_id=response_id,\n        )\n\n    async def _ahandle_stream_response(\n        self,\n        response: AsyncStream[ChatCompletionChunk],\n        prompt_tokens: int,\n    ) -> ModelResponse:\n        r\"\"\"Process a stream response from the model and extract the necessary\n        information.\n\n        Args:\n            response (dict): Model response.\n            prompt_tokens (int): Number of input prompt tokens.\n\n        Returns:\n            _ModelResponse: a parsed model response.\n        \"\"\"\n        content_dict: defaultdict = defaultdict(lambda: \"\")\n        finish_reasons_dict: defaultdict = defaultdict(lambda: \"\")\n        output_messages: List[BaseMessage] = []\n        response_id: str = \"\"\n        # All choices in one response share one role\n        async for chunk in response:\n            # Some model platforms like siliconflow may return None for the\n            # chunk.id\n            response_id = chunk.id if chunk.id else str(uuid.uuid4())\n            self._handle_chunk(\n                chunk, content_dict, finish_reasons_dict, output_messages\n            )\n        finish_reasons = [\n            finish_reasons_dict[i] for i in range(len(finish_reasons_dict))\n        ]\n        usage_dict = self.get_usage_dict(output_messages, prompt_tokens)\n\n        # TODO: Handle tool calls\n        return ModelResponse(\n            response=response,\n            tool_call_requests=None,\n            output_messages=output_messages,\n            finish_reasons=finish_reasons,\n            usage_dict=usage_dict,\n            response_id=response_id,\n        )\n\n    def _handle_chunk(\n        self,\n        chunk: ChatCompletionChunk,\n        content_dict: defaultdict,\n        finish_reasons_dict: defaultdict,\n        output_messages: List[BaseMessage],\n    ) -> None:\n        r\"\"\"Handle a chunk of the model response.\"\"\"\n        for choice in chunk.choices:\n            index = choice.index\n            delta = choice.delta\n            if delta.content is not None:\n                content_dict[index] += delta.content\n\n            if not choice.finish_reason:\n                continue\n\n            finish_reasons_dict[index] = choice.finish_reason\n            chat_message = BaseMessage(\n                role_name=self.role_name,\n                role_type=self.role_type,\n                meta_dict=dict(),\n                content=content_dict[index],\n            )\n            output_messages.append(chat_message)\n\n    def _step_terminate(\n        self,\n        num_tokens: int,\n        tool_calls: List[ToolCallingRecord],\n        termination_reason: str,\n    ) -> ChatAgentResponse:\n        r\"\"\"Create a response when the agent execution is terminated.\n\n        This method is called when the agent needs to terminate its execution\n        due to various reasons such as token limit exceeded, or other\n        termination conditions. It creates a response with empty messages but\n        includes termination information in the info dictionary.\n\n        Args:\n            num_tokens (int): Number of tokens in the messages.\n            tool_calls (List[ToolCallingRecord]): List of information\n                objects of functions called in the current step.\n            termination_reason (str): String describing the reason for\n                termination.\n\n        Returns:\n            ChatAgentResponse: A response object with empty message list,\n                terminated flag set to True, and an info dictionary containing\n                termination details, token counts, and tool call information.\n        \"\"\"\n        self.terminated = True\n\n        info = get_info_dict(\n            None,\n            None,\n            [termination_reason],\n            num_tokens,\n            tool_calls,\n        )\n\n        return ChatAgentResponse(\n            msgs=[],\n            terminated=self.terminated,\n            info=info,\n        )\n\n    def _execute_tool(\n        self,\n        tool_call_request: ToolCallRequest,\n    ) -> ToolCallingRecord:\n        r\"\"\"Execute the tool with arguments following the model's response.\n\n        Args:\n            tool_call_request (_ToolCallRequest): The tool call request.\n\n        Returns:\n            FunctionCallingRecord: A struct for logging information about this\n                function call.\n        \"\"\"\n        func_name = tool_call_request.tool_name\n        args = tool_call_request.args\n        tool_call_id = tool_call_request.tool_call_id\n        tool = self._internal_tools[func_name]\n        try:\n            result = tool(**args)\n        except Exception as e:\n            # Capture the error message to prevent framework crash\n            error_msg = f\"Error executing tool '{func_name}': {e!s}\"\n            result = {\"error\": error_msg}\n            logging.warning(error_msg)\n\n        return self._record_tool_calling(func_name, args, result, tool_call_id)\n\n    async def _aexecute_tool(\n        self,\n        tool_call_request: ToolCallRequest,\n    ) -> ToolCallingRecord:\n        func_name = tool_call_request.tool_name\n        args = tool_call_request.args\n        tool_call_id = tool_call_request.tool_call_id\n        tool = self._internal_tools[func_name]\n        import asyncio\n\n        try:\n            # Try different invocation paths in order of preference\n            if hasattr(tool, 'func') and hasattr(tool.func, 'async_call'):\n                # Case: FunctionTool wrapping an MCP tool\n                result = await tool.func.async_call(**args)\n\n            elif hasattr(tool, 'async_call') and callable(tool.async_call):\n                # Case: tool itself has async_call\n                result = await tool.async_call(**args)\n\n            elif hasattr(tool, 'func') and asyncio.iscoroutinefunction(\n                tool.func\n            ):\n                # Case: tool wraps a direct async function\n                result = await tool.func(**args)\n\n            elif asyncio.iscoroutinefunction(tool):\n                # Case: tool is itself a coroutine function\n                result = await tool(**args)\n\n            else:\n                # Fallback: synchronous call\n                result = tool(**args)\n\n        except Exception as e:\n            # Capture the error message to prevent framework crash\n            error_msg = f\"Error executing async tool '{func_name}': {e!s}\"\n            result = {\"error\": error_msg}\n            logging.warning(error_msg)\n\n        return self._record_tool_calling(func_name, args, result, tool_call_id)\n\n    def _record_tool_calling(\n        self,\n        func_name: str,\n        args: Dict[str, Any],\n        result: Any,\n        tool_call_id: str,\n    ):\n        r\"\"\"Record the tool calling information in the memory, and return the\n        tool calling record.\n        \"\"\"\n        assist_msg = FunctionCallingMessage(\n            role_name=self.role_name,\n            role_type=self.role_type,\n            meta_dict=None,\n            content=\"\",\n            func_name=func_name,\n            args=args,\n            tool_call_id=tool_call_id,\n        )\n        func_msg = FunctionCallingMessage(\n            role_name=self.role_name,\n            role_type=self.role_type,\n            meta_dict=None,\n            content=\"\",\n            func_name=func_name,\n            result=result,\n            tool_call_id=tool_call_id,\n        )\n\n        # Use precise timestamps to ensure correct ordering\n        # This ensures the assistant message (tool call) always appears before\n        # the function message (tool result) in the conversation context\n        # Use time.time_ns() for nanosecond precision to avoid collisions\n        import time\n\n        current_time_ns = time.time_ns()\n        base_timestamp = current_time_ns / 1_000_000_000  # Convert to seconds\n\n        self.update_memory(\n            assist_msg, OpenAIBackendRole.ASSISTANT, timestamp=base_timestamp\n        )\n\n        # Add minimal increment to ensure function message comes after\n        self.update_memory(\n            func_msg,\n            OpenAIBackendRole.FUNCTION,\n            timestamp=base_timestamp + 1e-6,\n        )\n\n        # Record information about this tool call\n        tool_record = ToolCallingRecord(\n            tool_name=func_name,\n            args=args,\n            result=result,\n            tool_call_id=tool_call_id,\n        )\n\n        return tool_record\n\n    def get_usage_dict(\n        self, output_messages: List[BaseMessage], prompt_tokens: int\n    ) -> Dict[str, int]:\n        r\"\"\"Get usage dictionary when using the stream mode.\n\n        Args:\n            output_messages (list): List of output messages.\n            prompt_tokens (int): Number of input prompt tokens.\n\n        Returns:\n            dict: Usage dictionary.\n        \"\"\"\n        encoding = get_model_encoding(self.model_type.value_for_tiktoken)\n        completion_tokens = sum(\n            len(encoding.encode(message.content))\n            for message in output_messages\n        )\n        return dict(\n            completion_tokens=completion_tokens,\n            prompt_tokens=prompt_tokens,\n            total_tokens=completion_tokens + prompt_tokens,\n        )\n\n    def add_model_scheduling_strategy(self, name: str, strategy_fn: Callable):\n        r\"\"\"Add a scheduling strategy method provided by user to ModelManger.\n\n        Args:\n            name (str): The name of the strategy.\n            strategy_fn (Callable): The scheduling strategy function.\n        \"\"\"\n        self.model_backend.add_strategy(name, strategy_fn)\n\n    def clone(self, with_memory: bool = False) -> ChatAgent:\n        r\"\"\"Creates a new instance of :obj:`ChatAgent` with the same\n        configuration as the current instance.\n\n        Args:\n            with_memory (bool): Whether to copy the memory (conversation\n                history) to the new agent. If True, the new agent will have\n                the same conversation history. If False, the new agent will\n                have a fresh memory with only the system message.\n                (default: :obj:`False`)\n\n        Returns:\n            ChatAgent: A new instance of :obj:`ChatAgent` with the same\n                configuration.\n        \"\"\"\n        # Create a new instance with the same configuration\n        # If with_memory is True, set system_message to None\n        # If with_memory is False, use the original system message\n        # To avoid duplicated system memory.\n        system_message = None if with_memory else self._original_system_message\n\n        new_agent = ChatAgent(\n            system_message=system_message,\n            model=self.model_backend.models,  # Pass the existing model_backend\n            memory=None,  # clone memory later\n            message_window_size=getattr(self.memory, \"window_size\", None),\n            token_limit=getattr(\n                self.memory.get_context_creator(), \"token_limit\", None\n            ),\n            output_language=self._output_language,\n            tools=[tool.func for tool in self._internal_tools.values()],\n            external_tools=[\n                schema for schema in self._external_tool_schemas.values()\n            ],\n            response_terminators=self.response_terminators,\n            scheduling_strategy=(\n                self.model_backend.scheduling_strategy.__name__\n            ),\n            max_iteration=self.max_iteration,\n            stop_event=self.stop_event,\n        )\n\n        # Copy memory if requested\n        if with_memory:\n            # Get all records from the current memory\n            context_records = self.memory.retrieve()\n            # Write them to the new agent's memory\n            for context_record in context_records:\n                new_agent.memory.write_record(context_record.memory_record)\n\n        return new_agent\n\n    def __repr__(self) -> str:\n        r\"\"\"Returns a string representation of the :obj:`ChatAgent`.\n\n        Returns:\n            str: The string representation of the :obj:`ChatAgent`.\n        \"\"\"\n        return (\n            f\"ChatAgent({self.role_name}, {self.role_type}, {self.model_type})\"\n        )\n\n    @dependencies_required(\"mcp\")\n    def to_mcp(\n        self,\n        name: str = \"CAMEL-ChatAgent\",\n        description: str = \"A helpful assistant using the CAMEL AI framework.\",\n        dependencies: Optional[List[str]] = None,\n        host: str = \"localhost\",\n        port: int = 8000,\n    ):\n        r\"\"\"Expose this ChatAgent as an MCP server.\n\n        Args:\n            name (str): Name of the MCP server.\n                (default: :obj:`CAMEL-ChatAgent`)\n            description (Optional[List[str]]): Description of the agent. If\n                None, a generic description is used. (default: :obj:`A helpful\n                assistant using the CAMEL AI framework.`)\n            dependencies (Optional[List[str]]): Additional\n                dependencies for the MCP server. (default: :obj:`None`)\n            host (str): Host to bind to for HTTP transport.\n                (default: :obj:`localhost`)\n            port (int): Port to bind to for HTTP transport.\n                (default: :obj:`8000`)\n\n        Returns:\n            FastMCP: An MCP server instance that can be run.\n        \"\"\"\n        from mcp.server.fastmcp import FastMCP\n\n        # Combine dependencies\n        all_dependencies = [\"camel-ai[all]\"]\n        if dependencies:\n            all_dependencies.extend(dependencies)\n\n        mcp_server = FastMCP(\n            name,\n            dependencies=all_dependencies,\n            host=host,\n            port=port,\n        )\n\n        # Store agent reference\n        agent_instance = self\n\n        # Define functions first\n        async def step(message, response_format=None):\n            r\"\"\"Execute a single step in the chat session with the agent.\"\"\"\n            format_cls = None\n            if response_format:\n                format_cls = model_from_json_schema(\n                    \"DynamicResponseFormat\", response_format\n                )\n            response = await agent_instance.astep(message, format_cls)\n            return {\n                \"status\": \"success\",\n                \"messages\": [msg.to_dict() for msg in response.msgs],\n                \"terminated\": response.terminated,\n                \"info\": response.info,\n            }\n\n        # Reset tool\n        def reset():\n            r\"\"\"Reset the chat agent to its initial state.\"\"\"\n            agent_instance.reset()\n            return {\"status\": \"success\", \"message\": \"Agent reset successfully\"}\n\n        # Set language tool\n        def set_output_language(language):\n            r\"\"\"Set the output language for the chat agent.\"\"\"\n            agent_instance.output_language = language\n            return {\n                \"status\": \"success\",\n                \"message\": f\"Output language set to '{language}'\",\n            }\n\n        # Agent info resource and tool\n        def get_agent_info():\n            r\"\"\"Get information about the agent.\"\"\"\n            info = {\n                \"agent_id\": agent_instance.agent_id,\n                \"model_type\": str(agent_instance.model_type),\n                \"role_name\": agent_instance.role_name,\n                \"role_type\": str(agent_instance.role_type),\n                \"output_language\": agent_instance.output_language or \"None\",\n                \"description\": description,\n            }\n            return info\n\n        # Chat history resource and tool\n        def get_chat_history():\n            r\"\"\"Get the chat history for the agent.\"\"\"\n            # Convert messages to simple serializable format\n            messages = []\n            for msg in agent_instance.chat_history:\n                # Create a simplified version of each message\n                msg_dict = {\n                    \"role\": msg.get(\"role\", \"\"),\n                    \"content\": msg.get(\"content\", \"\"),\n                }\n                # Include function calls if present\n                if \"function_call\" in msg:\n                    msg_dict[\"function_call\"] = {\n                        \"name\": msg[\"function_call\"].get(\"name\", \"\"),\n                        \"arguments\": msg[\"function_call\"].get(\"arguments\", \"\"),\n                    }\n                messages.append(msg_dict)\n            return messages\n\n        # Available tools resource and tool\n        def get_available_tools():\n            r\"\"\"Get a list of available internal tools.\"\"\"\n            tool_info = {}\n            for name, tool in agent_instance.tool_dict.items():\n                tool_info[name] = {\n                    \"name\": name,\n                    \"description\": tool.get_function_description() or \"\",\n                    \"parameters\": [\n                        {\"name\": param_name, \"type\": str(param_type)}\n                        for param_name, param_type in tool.parameters.items()\n                    ],\n                }\n            return tool_info\n\n        # Now register everything using decorators\n        mcp_server.tool()(step)\n        mcp_server.tool()(reset)\n        mcp_server.tool()(set_output_language)\n\n        mcp_server.resource(\"agent://\")(get_agent_info)\n        mcp_server.tool()(get_agent_info)\n\n        mcp_server.resource(\"history://\")(get_chat_history)\n        mcp_server.tool()(get_chat_history)\n\n        mcp_server.resource(\"tools://\")(get_available_tools)\n        mcp_server.tool()(get_available_tools)\n\n        return mcp_server"
+    }
+  ],
+  "file_path": "/home/xiyuanyang/anaconda3/lib/python3.12/site-packages/camel/agents/chat_agent.py",
+  "functions": [],
+  "top_level_code": [
+    {
+      "line_end": 14,
+      "line_start": 14,
+      "source_code": "from __future__ import annotations",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 16,
+      "line_start": 16,
+      "source_code": "import json",
+      "type": "Import"
+    },
+    {
+      "line_end": 17,
+      "line_start": 17,
+      "source_code": "import logging",
+      "type": "Import"
+    },
+    {
+      "line_end": 18,
+      "line_start": 18,
+      "source_code": "import textwrap",
+      "type": "Import"
+    },
+    {
+      "line_end": 19,
+      "line_start": 19,
+      "source_code": "import threading",
+      "type": "Import"
+    },
+    {
+      "line_end": 20,
+      "line_start": 20,
+      "source_code": "import uuid",
+      "type": "Import"
+    },
+    {
+      "line_end": 21,
+      "line_start": 21,
+      "source_code": "from collections import defaultdict",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 22,
+      "line_start": 22,
+      "source_code": "from pathlib import Path",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 34,
+      "line_start": 23,
+      "source_code": "from typing import (\n    TYPE_CHECKING,\n    Any,\n    Callable,\n    Dict,\n    List,\n    Optional,\n    Set,\n    Tuple,\n    Type,\n    Union,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 39,
+      "line_start": 36,
+      "source_code": "from openai import (\n    AsyncStream,\n    Stream,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 40,
+      "line_start": 40,
+      "source_code": "from pydantic import BaseModel, ValidationError",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 42,
+      "line_start": 42,
+      "source_code": "from camel.agents._types import ModelResponse, ToolCallRequest",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 49,
+      "line_start": 43,
+      "source_code": "from camel.agents._utils import (\n    convert_to_function_tool,\n    convert_to_schema,\n    get_info_dict,\n    handle_logprobs,\n    safe_model_dump,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 50,
+      "line_start": 50,
+      "source_code": "from camel.agents.base import BaseAgent",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 56,
+      "line_start": 51,
+      "source_code": "from camel.memories import (\n    AgentMemory,\n    ChatHistoryMemory,\n    MemoryRecord,\n    ScoreBasedContextCreator,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 61,
+      "line_start": 57,
+      "source_code": "from camel.messages import (\n    BaseMessage,\n    FunctionCallingMessage,\n    OpenAIMessage,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 67,
+      "line_start": 62,
+      "source_code": "from camel.models import (\n    BaseModelBackend,\n    ModelFactory,\n    ModelManager,\n    ModelProcessingError,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 68,
+      "line_start": 68,
+      "source_code": "from camel.prompts import TextPrompt",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 69,
+      "line_start": 69,
+      "source_code": "from camel.responses import ChatAgentResponse",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 70,
+      "line_start": 70,
+      "source_code": "from camel.storages import JsonStorage",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 71,
+      "line_start": 71,
+      "source_code": "from camel.toolkits import FunctionTool",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 79,
+      "line_start": 72,
+      "source_code": "from camel.types import (\n    ChatCompletion,\n    ChatCompletionChunk,\n    ModelPlatformType,\n    ModelType,\n    OpenAIBackendRole,\n    RoleType,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 80,
+      "line_start": 80,
+      "source_code": "from camel.types.agents import ToolCallingRecord",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 84,
+      "line_start": 81,
+      "source_code": "from camel.utils import (\n    get_model_encoding,\n    model_from_json_schema,\n)",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 85,
+      "line_start": 85,
+      "source_code": "from camel.utils.commons import dependencies_required",
+      "type": "ImportFrom"
+    },
+    {
+      "line_end": 88,
+      "line_start": 87,
+      "source_code": "if TYPE_CHECKING:\n    from camel.terminators import ResponseTerminator",
+      "type": "If"
+    },
+    {
+      "line_end": 90,
+      "line_start": 90,
+      "source_code": "logger = logging.getLogger(__name__)",
+      "type": "Assign"
+    },
+    {
+      "line_end": 101,
+      "line_start": 93,
+      "source_code": "try:\n    import os\n\n    if os.getenv(\"AGENTOPS_API_KEY\") is not None:\n        from agentops import track_agent\n    else:\n        raise ImportError\nexcept (ImportError, AttributeError):\n    from camel.utils import track_agent",
+      "type": "Try"
+    },
+    {
+      "line_end": 110,
+      "line_start": 104,
+      "source_code": "if os.environ.get(\"LANGFUSE_ENABLED\", \"False\").lower() == \"true\":\n    try:\n        from langfuse.decorators import observe\n    except ImportError:\n        from camel.utils import observe\nelse:\n    from camel.utils import observe",
+      "type": "If"
+    },
+    {
+      "line_end": 121,
+      "line_start": 113,
+      "source_code": "SIMPLE_FORMAT_PROMPT = TextPrompt(\n    textwrap.dedent(\n        \"\"\"\\\n        Please format the following content:\n        \n        {content}\n        \"\"\"\n    )\n)",
+      "type": "Assign"
+    }
+  ]
+}
