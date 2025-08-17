@@ -184,3 +184,4 @@ CodingAgent/pyparser/result/
 # history content for UserChat
 .history.txt
 history/
+.environment

@@ -1,17 +1,26 @@
 """File content reader for the coding agent."""
+
 import os
+import sys
+import json
+
+sys.path.append(os.getcwd())
 import fnmatch
 from typing import Optional, List, Tuple
 from abc import ABC, abstractmethod
 
+# add analyze tools
+from CodingAgent.config import load_config
+from CodingAgent.pyparser.parser import PythonStructureParser, parse_python_file
+
 
 class AbstractContentProvider(ABC):
     """Abstract base class for content providers."""
-    
+
     @abstractmethod
     def get_content(self) -> List[Tuple[str, str]]:
         """Get the content from the provider.
-        
+
         Returns:
             List of tuples containing (file_path, file_content).
         """
@@ -20,7 +29,7 @@ class AbstractContentProvider(ABC):
 
 class FileContentReader(AbstractContentProvider):
     """A simple file content context manager.
-    
+
     Loads file contents under the specified path when entering the context,
     and supports include/exclude file filtering with a two-step process.
     Automatically skips binary files.
@@ -33,12 +42,12 @@ class FileContentReader(AbstractContentProvider):
         exclude_list: Optional[List[str]] = None,
     ):
         """Initialize the FileContentReader.
-        
+
         Args:
             file_path: Path to the directory to read files from. Defaults to current working directory.
             include_list: List of file patterns to include.
             exclude_list: List of file patterns to exclude.
-            
+
         Raises:
             ValueError: If file_path is not a valid directory.
         """
@@ -50,13 +59,20 @@ class FileContentReader(AbstractContentProvider):
         self.exclude_list = exclude_list if exclude_list is not None else []
         self._contents: Optional[List[Tuple[str, str]]] = None
         self.files_filtered: Optional[List[str]] = None
+        self.config = load_config()
+
+        # feat: loading for environments
+        # self.environment is where the stores the code, in the current working directory
+        self.environ_path = os.path.join(os.getcwd(), ".environment")
+        # todo add judgement if the environment path exists and has contents
+        os.makedirs(self.environ_path, exist_ok=True)
 
         # Initialize
         self.filter_files()
 
     def _all_files(self) -> List[str]:
         """Get absolute paths of all files in the directory.
-        
+
         Returns:
             List of absolute file paths.
         """
@@ -68,11 +84,11 @@ class FileContentReader(AbstractContentProvider):
 
     def _match_patterns(self, files: List[str], patterns: List[str]) -> List[str]:
         """Return files that match any of the patterns.
-        
+
         Args:
             files: List of file paths to check.
             patterns: List of patterns to match against.
-            
+
         Returns:
             List of matching file paths.
         """
@@ -86,10 +102,10 @@ class FileContentReader(AbstractContentProvider):
 
     def _is_binary_file(self, path: str) -> bool:
         """Check if a file is a binary file.
-        
+
         Args:
             path: Path to the file to check.
-            
+
         Returns:
             True if the file is binary, False otherwise.
         """
@@ -107,7 +123,7 @@ class FileContentReader(AbstractContentProvider):
 
     def filter_files(self) -> List[str]:
         """Filter files with include then exclude patterns.
-        
+
         Returns:
             List of filtered file paths.
         """
@@ -134,20 +150,42 @@ class FileContentReader(AbstractContentProvider):
 
     def get_content(self) -> List[Tuple[str, str]]:
         """Read file contents (skipping binary files).
-        
+
         Returns:
             List of tuples containing (file_path, file_content).
         """
         if self._contents is None:
             self._contents = []
+            self.json_file = []
             for path in self.files_filtered:
                 with open(path, "r", encoding="utf-8", errors="ignore") as f:
-                    self._contents.append((path, f.read()))
+                    file_content: str = f.read()
+                    self._contents.append((path, file_content))
+                    new_path = path[:-3].replace(os.sep, "^")
+
+                    environ_file_path = os.path.join(
+                        self.environ_path, f"environ_{new_path}.json"
+                    )
+                    self.json_file.append(environ_file_path)
+                    with open(environ_file_path, "w", encoding="utf-8") as environ_file:
+                        result = parse_python_file(file_path=path)
+                        json.dump(
+                            result,
+                            environ_file,
+                            indent=2,
+                            ensure_ascii=False,
+                            sort_keys=True,
+                        )
+            with open(os.path.join(self.environ_path, "config.json"), "w") as file:
+                json.dump(
+                    self.json_file, file, indent=2, ensure_ascii=False, sort_keys=True
+                )
+
         return self._contents
 
     def __enter__(self) -> "FileContentReader":
         """Enter the context manager.
-        
+
         Returns:
             The FileContentReader instance.
         """
@@ -156,12 +194,12 @@ class FileContentReader(AbstractContentProvider):
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Exit the context manager.
-        
+
         Args:
             exc_type: Exception type if an exception occurred.
             exc_val: Exception value if an exception occurred.
             exc_tb: Exception traceback if an exception occurred.
-            
+
         Returns:
             False to propagate exceptions.
         """
