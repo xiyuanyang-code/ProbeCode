@@ -3,9 +3,9 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "CodingAgent"
-version = "0.1.0"
-description = "Simple Coding Agent"
+name = "ProbeCode"
+version = "0.2.0"
+description = "ProbeCode: AI coding agent integrating static code inspection with a ReAct framework to understand and memorize long-context code."
 authors = [{ name = "Xiyuan Yang", email = "yangxiyan@sjtu.edu.cn" }]
 readme = "README.md"
 requires-python = ">=3.10"
@@ -24,7 +24,7 @@ dependencies = [
 ]
 
 [project.scripts]
-coding_agent="CodingAgent.main:main"
+probecode = "CodingAgent.main:main"
 
 
 [tool.setuptools]
@@ -33,14 +33,10 @@ include-package-data = true
 
 [tool.setuptools.packages.find]
 where = ["."]
-exclude = [
-    "test*",
-    "log*",
-    "__pycache__*",
-]
+exclude = ["test*", "log*", "__pycache__*"]
 
 [tool.setuptools.package-data]
-"CodingAgent" = ["config.yaml"]
+"probecode" = ["config.yaml"]
 
 [[tool.uv.index]]
 url = "https://mirrors.aliyun.com/pypi/simple"
