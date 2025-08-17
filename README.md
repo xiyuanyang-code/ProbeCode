@@ -47,6 +47,7 @@ See [Todo List](#todo-list) for more information.
 - Code Preprocessing
     - Inspector: Inspect files for filtering.
     - Parser: Parse Python files into standard JSON files, which act like the environment with the Agent.
+    - This process will finish automatically, all the json file will be stored in `./.environment` folder for future MCP tool calling and reading.
 
 - Chat Process
     - ReAct[^1] Agent Structure: Environment and Reasoning.
