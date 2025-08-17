@@ -1,11 +1,15 @@
-# Repo-Coding Agent
+# ProbeCode
+
+![ProbeCode](./assets/imgs/probecode.png)
+
+AI coding agent integrating static code inspection with a ReAct framework to understand and memorize long-context code.
 
 > [!IMPORTANT]
 > Congratulations! The initial dev release `0.1.1` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
 
 ## Introduction
 
-We're developing a **Repo Coding Agent** designed to operate at the **project level**. This agent addresses the core challenge of managing extremely long and complex codebases that exceed a typical LLM's context window. It does this by intelligently identifying and reading only the relevant, specialized code sections, which in turn significantly boosts the LLM's comprehension and code generation capabilities for any given problem.
+We're developing a **Repo Coding Agent**, named **ProbeCode**, which is designed to operate and comprehend codes at the **project level**. This agent addresses the core challenge of managing extremely long and complex codebases that exceed a typical LLM's context window. It solve this problem by intelligently identifying and reading only the relevant, specialized code sections, which in turn significantly boosts the LLM's comprehension and code generation capabilities for any given problem.
 
 Here are the key features and benefits of our agent:
 
@@ -38,6 +42,9 @@ See [Todo List](#todo-list) for more information.
 
 </details>
 
+## WorkFlow
+
+tobe done
 
 ## Structure
 
@@ -100,8 +107,8 @@ Install several packages with `uv` or `pip`.
 
 ```bash
 # python >= 3.10
-git clone https://github.com/xiyuanyang-code/Repo-Coding-Agent.git
-cd Repo-Coding-Agent
+git clone https://github.com/xiyuanyang-code/ProbeCode.git
+cd ProbeCode
 
 # install packages
 # METHOD1: using uv (recommended)
@@ -141,7 +148,7 @@ export ZHIPU_API_KEY="switch to yours"
 
 ### MCP Settings
 
-Model Name and custom MCP config can be manually defined in [`config.json`](../llm/config.json)
+Model Name and custom MCP config can be manually defined in [`config.json`](./CodingAgent/llm/config.json)
 
 > [!Note]
 > Skip this part for default settings.
@@ -184,19 +191,18 @@ Model Name and custom MCP config can be manually defined in [`config.json`](../l
 
 ```bash
 # change to your current working directory
-coding_agent
+probecode
 
-# then enjoy the chat with coding agent!
+# then enjoy the chat with ProbeCode!
 ```
 
-After typing the commands above, you can chat with the chatbox! 
+After typing the commands above, you can chat with ProbeCode! 
 
 - It will create a file named `.history.txt` which stores all the historical command you have typed in. 
 
 - It will record the dialogue history in 'history' in the original folder (where you clone this project). 
 
 - Logs will be saved here as well (in log in the original folder)
-
 
 The chat interface supports:
 - Multi-turn conversations with context management
