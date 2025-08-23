@@ -8,6 +8,7 @@ sys.path.append(os.getcwd())
 
 
 from anthropic import Anthropic, APIStatusError
+from contextlib import AsyncExitStack
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from CodingAgent.llm.agent.base_chat import BaseChat
@@ -37,6 +38,7 @@ class MCPChat(BaseChat):
         super().__init__(config_file)
         self.model_list = self.config.get("model", {}).get("model_name", [])
         self.session: ClientSession = None
+        self.exit_stack = AsyncExitStack()
 
         anthropic_api_key = os.environ.get("ANTHROPIC_API_KEY")
         if not anthropic_api_key:
@@ -134,6 +136,22 @@ class MCPChat(BaseChat):
                     self.logger.notice(
                         f"Connected to server with tools: {[tool.name for tool in response.tools]}"
                     )
+
+                    # resource config
+                    response = await session.list_resource_templates()
+                    self.available_resources = [
+                        {
+                            "name": resource.name,
+                            "description": resource.description,
+                            "uriTemplate": resource.uriTemplate
+                        }
+                        for resource in response.resourceTemplates
+                    ]
+                    self.logger.notice(
+                        f"Connected to server with resources: {[resource.name for resource in response.resourceTemplates]}"
+                    )
+
+
                     self.chat_loop()
         except Exception as e:
             self.logger.error(f"Failed to connect to the server: {e}")
@@ -233,6 +251,10 @@ class MCPChat(BaseChat):
                         self.memory_manager.add_message(final_message)
                         self.user_chat.display_output(content.text)
                 break
+
+    async def cleanup(self):
+        """Clean up resources"""
+        await self.exit_stack.aclose()
 
 
 # for testing only

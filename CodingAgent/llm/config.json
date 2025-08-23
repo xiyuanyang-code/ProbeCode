@@ -10,7 +10,7 @@
             "command": "uv",
             "args": [
                 "run",
-                "/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/llm/mcp_tool_integrate.py"
+                "/home/xiyuanyang/Agents/Coding_Agent/CodingAgent/llm/server.py"
             ]
         }
     }
