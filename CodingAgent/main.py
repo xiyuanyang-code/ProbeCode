@@ -78,7 +78,7 @@ async def main_():
 
     # section2: data preprocessing for environment setup
     console.print("[purple]Loading environments for ProbeCode...[/purple]")
-    project_context = get_project_context(args_dict["project_path"])
+    # project_context = get_project_context(args_dict["project_path"])
 
     # section3: initializing MCP chatbot
     console.print("[purple]ProbeCode Agent is coming...[/purple]")
