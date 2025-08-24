@@ -11,6 +11,8 @@ sys.path.append(os.getcwd())
 from CodingAgent.config import load_config
 
 
+# todo: https://github.com/modelcontextprotocol/python-sdk/blob/main/examples/fastmcp/memory.py
+
 class MemoryManager:
     """
     Manages the short-term and long-term memory for a chatbot.
