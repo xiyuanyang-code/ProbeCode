@@ -161,7 +161,7 @@ class FileContentReader(AbstractContentProvider):
                 with open(path, "r", encoding="utf-8", errors="ignore") as f:
                     file_content: str = f.read()
                     self._contents.append((path, file_content))
-                    new_path = path[:-3].replace(os.sep, "^")
+                    new_path = path[:-3].replace(os.sep, "_")
 
                     environ_file_path = os.path.join(
                         self.environ_path, f"environ_{new_path}.json"
