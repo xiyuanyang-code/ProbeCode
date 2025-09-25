@@ -4,7 +4,7 @@ import argparse
 import os
 
 
-def test_tool(method, params=None):
+def test_tool(method, params={}):
     """
     Test FMP tool
 
@@ -12,8 +12,6 @@ def test_tool(method, params=None):
         method: The tool method name
         params: Request parameters (optional)
     """
-    if params is None:
-        params = {}
 
     print(f"\nTesting tool: {method}")
     print(f"Parameters: {params}")
