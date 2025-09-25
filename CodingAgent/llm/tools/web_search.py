@@ -8,10 +8,7 @@ from serpapi import GoogleSearch
 
 def _get_api_key():
     api_key = os.environ.get("SERPAPI_API_KEY", None)
-    if api_key is None:
-        return "4fb5ff7d0b7e37c4b0bb149c46447f08da5d7f7d3a0012b25adb2ec3b83a0f34"
-    else:
-        return api_key
+    return api_key
 
 
 # mcp settings
