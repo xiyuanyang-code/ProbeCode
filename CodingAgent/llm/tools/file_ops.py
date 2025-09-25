@@ -1,12 +1,19 @@
 import os
 import shutil
+import argparse
+from mcp.server.fastmcp import FastMCP
 
+# mcp settings
+mcp = FastMCP("file_operations")
+
+
+@mcp.tool()
 def create_folder(path: str) -> str:
     """Create a new folder at the specified path.
-    
+
     Args:
         path (str): The path where the folder should be created.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
@@ -16,26 +23,31 @@ def create_folder(path: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def list_directory(path: str) -> list:
     """List all files and subdirectories in the specified directory.
-    
+
     Args:
         path (str): The path of the directory to list.
-        
+
     Returns:
         list: A list of file and directory names, or an error message.
     """
     try:
-        return os.listdir(path)
+        list_dir = os.listdir(path)
+        return f"LIST_FILE_PATH: {list_dir}"
     except Exception as e:
         return [f"Error: {e}"]
 
+
+@mcp.tool()
 def delete_item(path: str) -> str:
     """Delete the specified file or folder.
-    
+
     Args:
         path (str): The path of the item to delete.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
@@ -48,13 +60,15 @@ def delete_item(path: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def rename_item(src: str, dest: str) -> str:
     """Rename a file or folder.
-    
+
     Args:
         src (str): The current path of the item.
         dest (str): The new path for the item.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
@@ -64,13 +78,15 @@ def rename_item(src: str, dest: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def move_file(src: str, dest: str) -> str:
     """Move a file to a new location.
-    
+
     Args:
         src (str): The current path of the file.
         dest (str): The destination path for the file.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
@@ -80,44 +96,50 @@ def move_file(src: str, dest: str) -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def read_file(path: str) -> str:
     """Read the contents of a file.
-    
+
     Args:
         path (str): The path of the file to read.
-        
+
     Returns:
         str: The file contents or an error message.
     """
     try:
-        with open(path, 'r', encoding='utf-8') as file:
+        with open(path, "r", encoding="utf-8") as file:
             return file.read()
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def write_file(path: str, content: str) -> str:
     """Write content to a file.
-    
+
     Args:
         path (str): The path of the file to write to.
         content (str): The content to write to the file.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
     try:
-        with open(path, 'w', encoding='utf-8') as file:
+        with open(path, "w", encoding="utf-8") as file:
             file.write(content)
         return f"Successfully wrote to {path}"
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def get_file_info(path: str) -> dict:
     """Get information about a file or directory.
-    
+
     Args:
         path (str): The path of the file or directory.
-        
+
     Returns:
         dict: A dictionary containing file information or an error message.
     """
@@ -128,14 +150,16 @@ def get_file_info(path: str) -> dict:
             "size": stat.st_size,
             "is_directory": os.path.isdir(path),
             "created": stat.st_ctime,
-            "modified": stat.st_mtime
+            "modified": stat.st_mtime,
         }
     except Exception as e:
         return {"error": str(e)}
 
+
+@mcp.tool()
 def get_current_directory() -> str:
     """Get the current working directory.
-    
+
     Returns:
         str: The current working directory path.
     """
@@ -144,18 +168,35 @@ def get_current_directory() -> str:
     except Exception as e:
         return f"Error: {e}"
 
+
+@mcp.tool()
 def create_file(path: str) -> str:
     """Create a new empty file at the specified path.
-    
+
     Args:
         path (str): The path where the file should be created.
-        
+
     Returns:
         str: A message indicating success or failure.
     """
     try:
-        with open(path, 'w') as file:
+        with open(path, "w") as file:
             pass  # Create an empty file
         return f"Created file: {path}"
     except Exception as e:
         return f"Error: {e}"
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="Web Search Server")
+    parser.add_argument(
+        "transport",
+        nargs="?",
+        default="stdio",
+        choices=["stdio", "sse", "streamable-http"],
+        help="Transport type (stdio, sse, or streamable-http)",
+    )
+    args = parser.parse_args()
+
+    # run mcp
+    mcp.run(transport=args.transport)

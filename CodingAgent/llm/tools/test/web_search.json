@@ -1,0 +1,14 @@
+[
+    {
+        "name": "google_search",
+        "params": {
+            "query": "Shanghai Jiao Tong University"
+        }
+    },
+    {
+        "name": "web_search_chinese",
+        "params": {
+            "query": "上海交通大学"
+        }
+    }
+]

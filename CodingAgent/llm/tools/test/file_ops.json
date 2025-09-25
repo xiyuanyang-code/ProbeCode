@@ -1,0 +1,144 @@
+[
+    {
+        "name": "create_folder",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "create_folder",
+        "params": {
+            "path": "test_dir/sub_dir"
+        }
+    },
+    {
+        "name": "create_file",
+        "params": {
+            "path": "test_dir/file1.txt"
+        }
+    },
+    {
+        "name": "write_file",
+        "params": {
+            "path": "test_dir/file1.txt",
+            "content": "Hello, world!"
+        }
+    },
+    {
+        "name": "read_file",
+        "params": {
+            "path": "test_dir/file1.txt"
+        }
+    },
+    {
+        "name": "get_file_info",
+        "params": {
+            "path": "test_dir/file1.txt"
+        }
+    },
+    {
+        "name": "create_file",
+        "params": {
+            "path": "test_dir/sub_dir/file2.txt"
+        }
+    },
+    {
+        "name": "write_file",
+        "params": {
+            "path": "test_dir/sub_dir/file2.txt",
+            "content": "This is another file."
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir/sub_dir"
+        }
+    },
+    {
+        "name": "rename_item",
+        "params": {
+            "src": "test_dir/file1.txt",
+            "dest": "test_dir/renamed_file.txt"
+        }
+    },
+    {
+        "name": "read_file",
+        "params": {
+            "path": "test_dir/renamed_file.txt"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "move_file",
+        "params": {
+            "src": "test_dir/renamed_file.txt",
+            "dest": "test_dir/sub_dir/moved_file.txt"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir/sub_dir"
+        }
+    },
+    {
+        "name": "read_file",
+        "params": {
+            "path": "test_dir/sub_dir/moved_file.txt"
+        }
+    },
+    {
+        "name": "delete_item",
+        "params": {
+            "path": "test_dir/sub_dir/moved_file.txt"
+        }
+    },
+    {
+        "name": "delete_item",
+        "params": {
+            "path": "test_dir/sub_dir/file2.txt"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "delete_item",
+        "params": {
+            "path": "test_dir/sub_dir"
+        }
+    },
+    {
+        "name": "list_directory",
+        "params": {
+            "path": "test_dir"
+        }
+    },
+    {
+        "name": "delete_item",
+        "params": {
+            "path": "test_dir"
+        }
+    }
+]
