@@ -191,7 +191,7 @@ async def demo_usage():
     while True:
         prompt = context_manager.build_input_prompt()
         print(f"The prompt is:\n{prompt} \n\n")
-        result = await async_agent.async_step(prompt)
+        result = await async_agent.async_step_callback(prompt)
         context_manager.log_agent(result["step_response"])
 
         if not result["tool_call_content"]:

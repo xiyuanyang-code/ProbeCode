@@ -65,8 +65,8 @@ class StreamToolManager(BaseToolManager):
         super().__init__(url)
         self.session_id = str(uuid4()) if not session_id else session_id
         self.headers["session_id"] = session_id
-        # self.session_id = str("test_id2")
         self.timeout = timeout
+        self.http_client = httpx.AsyncClient(timeout=self.timeout)
 
     async def submit_task(self, code: str):
         submit_url = f"{self.server_url}/submit"
@@ -89,25 +89,25 @@ class StreamToolManager(BaseToolManager):
         self,
     ):
         recieve_url = f"{self.server_url}/get_mcp_result/{self.session_id}"
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "GET", recieve_url, headers=self.headers
-            ) as response:
-                async for line in response.aiter_lines():
-                    if not line.strip():
-                        continue
+        async with self.http_client.stream(
+            "GET", recieve_url, headers=self.headers
+        ) as response:
+            async for line in response.aiter_lines():
+                if not line.strip():
+                    continue
+                try:
                     data = json.loads(line)
-                    # print("Received:", data)
-                    # print(data['content'], end="", flush=True)
-                    # print(data['content'], data['stream_state'])
+                except json.JSONDecodeError:
+                    continue
 
-                    if (not data.get("sub_stream_type")) and (
-                        data.get("stream_state") == "end"
-                    ):
-                        yield data
-                        break
-                    else:
-                        yield data
+                if (not data.get("sub_stream_type")) and (
+                    data.get("stream_state") == "end"
+                ):
+                    yield data
+                    await response.aclose()
+                    break
+                else:
+                    yield data
 
     async def execute_code_async_stream(
         self,
@@ -123,12 +123,11 @@ class StreamToolManager(BaseToolManager):
         async for item in self.recieve_task_process():
             yield item
 
-    async def execute_code_async_resonly(self, tool_call: str):
+    async def execute_code_async(self, tool_call: str):
         submit_status = await self.submit_task(tool_call)
         if submit_status["status"] == "fail":
             return {"output": "code submit fail"}
 
-        # await self.recieve_task_process()
         async for item in self.recieve_task_process():
             if item["main_stream_type"] == "code_result":
                 return_value = {"output": item["content"]}
@@ -136,10 +135,11 @@ class StreamToolManager(BaseToolManager):
         return return_value
 
     async def close_session(self):
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{self.server_url}/del_session",
-                params={"session_id": self.session_id},
-                headers=self.headers,
-            )
-            return resp.json()
+        resp = await self.http_client.post(
+            f"{self.server_url}/del_session",
+            params={"session_id": self.session_id},
+            headers=self.headers,
+        )
+
+        await self.http_client.aclose()
+        return resp.json()

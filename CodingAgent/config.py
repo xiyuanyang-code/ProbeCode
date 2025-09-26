@@ -27,19 +27,6 @@ def write_config():
         print(f"Error: Could not decode JSON from {MCP_config_dir}.")
         exit()
 
-    data["servers"]["tools"]["args"][1] = os.path.join(
-        default_dir, "CodingAgent/llm/mcp_tool_integrate.py"
-    )
-
-    print("Modified MCP config:", data)
-    print(f"This file is located in {MCP_config_dir}")
-
-    try:
-        with open(MCP_config_dir, "w") as file:
-            json.dump(data, file, indent=4, ensure_ascii=False)
-    except IOError as e:
-        print(f"Error writing to file {MCP_config_dir}: {e}")
-
     # Write into yaml file
     config_data = {
         "default_dir": default_dir,

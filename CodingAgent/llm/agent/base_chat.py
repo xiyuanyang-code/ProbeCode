@@ -176,5 +176,5 @@ class BaseChat:
 
                 asyncio.run(self._process_query(query))
 
-            except Exception as e:
-                self.logger.error(f"An error occurred during chat loop: {str(e)}")
+            except Exception :
+                self.logger.error(f"An error occurred during chat loop")

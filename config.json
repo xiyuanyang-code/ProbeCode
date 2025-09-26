@@ -1,0 +1,16 @@
+{
+    "llm_config": {
+        "model": "deepseek-r1",
+        "base_url": "http://127.0.0.1:8888/v1/",
+        "api_key": "EMPTY",
+        "generation_config": {
+            "max_tokens": 16384,
+            "temperature": 0.5
+        },
+        "stop_condition": "</code>",
+        "tool_condition": "<code[^>]*>((?:(?!<code).)*?)</code>"
+    },
+    "tool_server_url": "http://127.0.0.1:30010",
+    "chat_template_path": "/data/xiyuanyang/Agent/tool_backends/MCP/server/ProbeCode/template/r1_tool.jinja",
+    "prompt_base_dir": "/data/xiyuanyang/Agent/tool_backends/MCP/server/ProbeCode/CodingAgent/llm/prompt"
+}

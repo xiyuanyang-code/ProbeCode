@@ -8,7 +8,6 @@ import colorlog
 sys.path.append(os.getcwd())
 
 from CodingAgent.config import load_config
-
 config = load_config()
 
 
