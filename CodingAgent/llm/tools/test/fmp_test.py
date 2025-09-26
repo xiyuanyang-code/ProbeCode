@@ -28,7 +28,7 @@ def test_tool(method, params={}):
                 if result.get("status") is True:
                     print("✅ Test successful")
                     print(
-                        f"Response data: {json.dumps(result.get('result'), indent=2, ensure_ascii=False)[:500]}..."
+                        f"Response data: {json.dumps(result.get('result'), indent=2, ensure_ascii=False)}"
                     )
                 else:
                     print(

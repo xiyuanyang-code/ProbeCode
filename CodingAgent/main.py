@@ -13,7 +13,7 @@ from CodingAgent.inspector.context_manager import FileContentReader
 from CodingAgent.config import load_config
 from CodingAgent.utils.log import setup_logging_config
 from CodingAgent.utils.greetings import welcome, goodbye
-from CodingAgent.llm.agent.client_chat import MCPChat
+from CodingAgent.llm.agent_.client_chat import MCPChat
 
 
 logger = setup_logging_config()

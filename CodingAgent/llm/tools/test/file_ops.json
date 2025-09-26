@@ -6,6 +6,10 @@
         }
     },
     {
+        "name": "get_current_directory",
+        "params": {}
+    },
+    {
         "name": "create_folder",
         "params": {
             "path": "test_dir/sub_dir"
