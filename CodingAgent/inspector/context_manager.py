@@ -70,7 +70,6 @@ class FileContentReader(AbstractContentProvider):
                 f"INFO: The environment path {self.environ_path} has been created and has contents in it! You can delete it manually for updating code status or using update flag while reading content."
             )
         os.makedirs(self.environ_path, exist_ok=True)
-
         # todo add smarter judgement for rewriting files for updating codes.
 
         # Initialize
