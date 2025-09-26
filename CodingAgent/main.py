@@ -1,9 +1,11 @@
 import os
 import sys
 import argparse
+import asyncio
+
 from typing import List, Tuple
 from rich.console import Console
-import asyncio
+from contextlib import redirect_stderr
 
 # todo add refactored llm response components
 
@@ -13,7 +15,7 @@ from CodingAgent.inspector.context_manager import FileContentReader
 from CodingAgent.config import load_config
 from CodingAgent.utils.log import setup_logging_config
 from CodingAgent.utils.greetings import welcome, goodbye
-from CodingAgent.llm.agent_.client_chat import MCPChat
+from CodingAgent.llm.chat import ProbeCodeAgent
 
 
 logger = setup_logging_config()
@@ -33,6 +35,12 @@ def parsing_arguments():
         type=str,
         default=os.getcwd(),
         help="The project location, absolute path is recommended.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        default=False,
+        help="Whether enhancing debug mode for getting information",
     )
     args = parser.parse_args()
     return vars(args)
@@ -54,9 +62,9 @@ def get_project_context(project_path: str) -> str:
         # todo initialize a small LLM to automatically change this
         # this is just for the default settings
         include_list=["*.py"],
-        exclude_list=["*/log/*", "*/build/*", "dist/*, .venv/*"],
+        exclude_list=[".venv/*.*", "*/log/*", "*/build/*", "dist/*"],
     ) as context_manager:
-        contents: List[Tuple[str, str]] = context_manager.get_content()
+        contents: List[Tuple[str, str]] = context_manager.get_content(update=True)
 
     for path, content in contents:
         system_message += (
@@ -78,16 +86,24 @@ async def main_():
 
     # section2: data preprocessing for environment setup
     console.print("[purple]Loading environments for ProbeCode...[/purple]")
-    project_context = get_project_context(args_dict["project_path"])
+    project_context = get_project_context(args_dict["project_path"],)
 
     # section3: initializing MCP chatbot
     console.print("[purple]ProbeCode Agent is coming...[/purple]")
-    chatbox = MCPChat(
-        config_file=os.path.join(
-            config.get("default_dir"), "CodingAgent/llm/config.json"
-        )
-    )
-    await chatbox.connect(server_name="tools")
+
+    if not args_dict["debug"]:
+        try:
+            with open(os.devnull, "w") as dev_null_file:
+                with redirect_stderr(dev_null_file):
+                    chatbox = ProbeCodeAgent()
+                    chatbox.chat_loop()
+
+        except Exception as e:
+            print(f"Error: {e}")
+    else:
+        print("Debugging mode")
+        chatbox = ProbeCodeAgent()
+        chatbox.chat_loop()
 
     # section4: ending chat
     console.print(f"[purple]{goodbye()}[/purple]")
@@ -100,4 +116,4 @@ def main():
 
 if __name__ == "__main__":
     print("We recommend you to run this project via pip")
-    asyncio.run(main_())
+    main()

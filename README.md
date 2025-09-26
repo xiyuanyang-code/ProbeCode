@@ -256,8 +256,9 @@ All PRs are welcome. Email the author or raise an issue to communicate how to co
     - [x] Integrate this independent modules into pipeline ✅
     - [ ] View this as a MCP tool calling and refactor the code again
 - [ ] MCP configuration
+    - [x] refactor MCP settings into sandbox
     - [x] Finish MCP tools settings
-    - [ ] Restrict when LLM are enabled to call tools (optimize docstring)
+    - [x] Restrict when LLM are enabled to call tools (optimize docstring)
     - [ ] Finish MCP prompts settings
     - [ ] Finish MCP resources settings
     - [ ] Finish MCP Sampling
