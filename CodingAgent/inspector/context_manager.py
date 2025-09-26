@@ -66,9 +66,11 @@ class FileContentReader(AbstractContentProvider):
         # self.environment is where the stores the code, in the current working directory
         self.environ_path = os.path.join(os.getcwd(), ".environment")
         if os.path.exists(self.environ_path) and os.listdir(self.environ_path):
-            print(f"INFO: The environment path {self.environ_path} has been created and has contents in it! You can delete it manually for updating code status or using update flag while reading content.")
+            print(
+                f"INFO: The environment path {self.environ_path} has been created and has contents in it! You can delete it manually for updating code status or using update flag while reading content."
+            )
         os.makedirs(self.environ_path, exist_ok=True)
-        
+
         # todo add smarter judgement for rewriting files for updating codes.
 
         # Initialize
@@ -152,7 +154,7 @@ class FileContentReader(AbstractContentProvider):
         self.files_filtered = sorted(final_files)
         return self.files_filtered
 
-    def get_content(self, update=False) -> List[Tuple[str, str]]:
+    def get_content(self, update=True) -> List[Tuple[str, str]]:
         """Read file contents (skipping binary files).
 
         Returns:
@@ -163,10 +165,12 @@ class FileContentReader(AbstractContentProvider):
             if os.path.exists(self.environ_path):
                 try:
                     shutil.rmtree(self.environ_path)
+                    os.makedirs(self.environ_path,exist_ok=True)
                 except OSError as e:
                     print(f"Error: Could not delete folder {self.environ_path}: {e}")
             else:
                 print(f"Folder '{self.environ_path}' does not exist.")
+
         if self._contents is None:
             self._contents = []
             self.json_file = []
@@ -174,7 +178,7 @@ class FileContentReader(AbstractContentProvider):
                 with open(path, "r", encoding="utf-8", errors="ignore") as f:
                     file_content: str = f.read()
                     self._contents.append((path, file_content))
-                    new_path = path[:-3].replace(os.sep, "_")
+                    new_path = path[:-3].replace(os.sep, "@")
 
                     environ_file_path = os.path.join(
                         self.environ_path, f"environ_{new_path}.json"
@@ -202,7 +206,8 @@ class FileContentReader(AbstractContentProvider):
         Returns:
             The FileContentReader instance.
         """
-        self.get_content()
+        os.makedirs(self.environ_path, exist_ok=True)
+        self.get_content(update=True)
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):

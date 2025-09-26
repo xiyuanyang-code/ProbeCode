@@ -5,6 +5,11 @@ AI coding agent integrating static code inspection with a ReAct[^1] framework to
 ![ProbeCode](./assets/imgs/probecode.png)
 
 > [!IMPORTANT]
+> The Repo is being refactored for it is changing the basic component `MCPChat` and rewrite it into a new MCP-based docker-friendly chatbot!
+> PR Welcome.
+
+
+> [!IMPORTANT]
 > Congratulations! The initial dev release `0.2.0` are available! The current light version (dev) supports a lightweight command-line chat interface with history management and tool calls. See [Usage](#usage) for more detail.
 
 ## Introduction

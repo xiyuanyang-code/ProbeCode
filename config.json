@@ -1,7 +1,7 @@
 {
     "llm_config": {
-        "model": "deepseek-r1",
-        "base_url": "http://127.0.0.1:8888/v1/",
+        "model": "GLM-4.5",
+        "base_url": "http://127.0.0.1:8889/v1/",
         "api_key": "EMPTY",
         "generation_config": {
             "max_tokens": 16384,

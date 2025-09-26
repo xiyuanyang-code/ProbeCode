@@ -64,7 +64,7 @@ def get_project_context(project_path: str) -> str:
         include_list=["*.py"],
         exclude_list=[".venv/*.*", "*/log/*", "*/build/*", "dist/*"],
     ) as context_manager:
-        contents: List[Tuple[str, str]] = context_manager.get_content(update=True)
+        contents: List[Tuple[str, str]] = context_manager._contents
 
     for path, content in contents:
         system_message += (
